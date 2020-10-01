@@ -1,98 +1,103 @@
-// Grammar.cc
-//   1999 Atsushi Tagami
-// $Id: Grammar.cc,v 1.1.1.1 2000/01/05 23:10:57 atsushi Exp $
+//  Grammar.cpp
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
 #include <iostream>
 #include <strstream>
 #include "Grammar.h"
 
 //--------- Grammar
 // constractor
-Grammar::Grammar(std::istream& is) : mLock(true), mErrorLine(0), mTermNum(1)
+Grammar::Grammar(std::istream &is) : lock_(true), error_line_(0), term_num_(1)
 {
-	Init(is);
+	init(is);
 }
 
-
 //---------- Init
-// grammarクラスの初期化をおこなう. 
+// grammarクラスの初期化をおこなう.
 // 何も問題がなければ 0を何か問題があればその行を返す
-void
-Grammar::Init(std::istream& is)
+void Grammar::init(std::istream &is)
 {
 	std::string buffer;
-	UnLock(); // ロック解除
-	mErrorLine = 1;
-	mTermNum = 1;
-	
+	unlock(); // ロック解除
+	error_line_ = 1;
+	term_num_ = 1;
+
 	// 1行目を読み取って，開始記号を得る
 	is >> buffer;
-	mStartTerm = TermToNum(buffer);
+	start_term_ = term_to_id(buffer);
 	getline(is, buffer); // \nまで読み飛ばす
-	mErrorLine++;
-	
-	while(is.good()){
+	error_line_++;
+
+	while (is.good())
+	{
 		// 1行読み込んで stream化する
 		getline(is, buffer);
-		if(buffer.length() == 0){
-			mErrorLine++;
+		if (buffer.length() == 0)
+		{
+			error_line_++;
 			continue;
 		}
 		std::istrstream iss(buffer.data(), buffer.length());
-		
-		Rule* rule = new Rule;
-		mRules.push_back(rule);
+
+		Rule *rule = new Rule;
+		rules_.push_back(rule);
 		// 確率値を読み取る
-		iss >> rule->dProb;
+		iss >> rule->prob;
 		// 左辺を読み取る
 		iss >> buffer;
-		rule->iLeft = TermToNum(buffer);
+		rule->left = term_to_id(buffer);
 		// Tokenに分割しながら右辺を読み取る
 		std::string token;
-		while(iss >> token){
-			rule->iRight.push_back(TermToNum(token));
+		while (iss >> token)
+		{
+			rule->right.push_back(term_to_id(token));
 		}
 		// もしも右辺がなかった場合はきえる
-		if(rule->iRight.size() == 0){
-			mRules.pop_back();
+		if (rule->right.size() == 0)
+		{
+			rules_.pop_back();
 			delete rule;
 			return;
 		}
-		mErrorLine++;
+		error_line_++;
 	}
-	mErrorLine = 0;
-	Lock(); // Lock Rules
+	error_line_ = 0;
+	lock(); // Lock Rules
 };
 
-
-//---------- TermToNum
-// Termを対応する番号に変換する 		      
+//---------- term_to_id
+// Termを対応する番号に変換する
 //  もしGrammarがロックされていて，変換が不可能なら-1を返す
-//  それ以外は変換した番号を返す			   
-int
-Grammar::TermToNum(const std::string &term)
+//  それ以外は変換した番号を返す
+int Grammar::term_to_id(const std::string &term)
 {
 	int id = -1;
 	// 既存のTermListにtermがないかどうか検索する
-	TermList::iterator it = mTerms.find(term);
-	if (it != mTerms.end()) {
+	TermList::iterator it = terms_.find(term);
+	if (it != terms_.end())
+	{
 		id = it->second;
-	}else if(IsLocked() == false) {
+	}
+	else if (is_locked() == false)
+	{
 		// Lockがかけられていなければ新規作成
-		id = mTermNum++;
-		mTerms[term] = id;
+		id = term_num_++;
+		terms_[term] = id;
 	}
 	return id;
 };
 
-
-//--------- NumToTerm
+//--------- id_to_term
 // Term Numberを 対応するTermに変換する
 //  εもしくは該当なしの場合，""を返す
-void 
-Grammar::NumToTerm(std::string &outTerm, int inTermID)
+void Grammar::id_to_term(std::string &outTerm, int inTermID)
 {
-	for(TermList::iterator it = mTerms.begin(); it != mTerms.end(); ++it){
-		if (inTermID == it->second) {
+	for (TermList::iterator it = terms_.begin(); it != terms_.end(); ++it)
+	{
+		if (inTermID == it->second)
+		{
 			outTerm = it->first;
 			return;
 		}
@@ -100,40 +105,42 @@ Grammar::NumToTerm(std::string &outTerm, int inTermID)
 	outTerm = "";
 };
 
-
-// TermAfterDot
+// term_after_dot
 //    ドットの次のTermのIDを返す
-int
-Grammar::TermAfterDot(int inRuleNo, int inDotLocate)
+int Grammar::term_after_dot(int inRuleNo, int inDotLocate)
 {
-	if(inRuleNo >= mRules.size()){
+	if (inRuleNo >= rules_.size())
+	{
 		return 0;
 	}
-	
-	Rule* rule = mRules[inRuleNo];
-	if(rule->iRight.size() > inDotLocate){
+
+	Rule *rule = rules_[inRuleNo];
+	if (rule->right.size() > inDotLocate)
+	{
 		/* もし後に文字があるならその文字番号を返す */
-		return rule->iRight[inDotLocate];
-	}else{
+		return rule->right[inDotLocate];
+	}
+	else
+	{
 		/* もし最後なら0(ε)を返す */
 		return 0;
 	}
 };
 
-
-// NumberToRule
+// id_to_rule
 //  生成規則番号を生成規則の文字列に変換する
-void
-Grammar::NumToRule(std::string &outRule, int inRuleNo){
-	Rule* rule = mRules[inRuleNo];
+void Grammar::id_to_rule(std::string &outRule, int inRuleNo)
+{
+	Rule *rule = rules_[inRuleNo];
 	// 左辺をいれる
-	NumToTerm(outRule, rule->iLeft);
+	id_to_term(outRule, rule->left);
 	outRule += " -> ";
 	// 右辺をいれる
 	std::string term;
-	for(std::vector<int>::iterator it = rule->iRight.begin(); 
-	it != rule->iRight.end(); ++it){
-		NumToTerm(term, *it);
+	for (std::vector<int>::iterator it = rule->right.begin();
+		 it != rule->right.end(); ++it)
+	{
+		id_to_term(term, *it);
 		outRule += term;
 		outRule += " ";
 	}

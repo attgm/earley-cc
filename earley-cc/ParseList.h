@@ -1,8 +1,12 @@
-// ParseList.h
-//  1999 Atsushi Tagami
-// $Id: ParseList.h,v 1.6 2000/03/07 11:49:09 atsushi Exp $
-#ifndef __PARSE_LIST_H__
-#define __PARSE_LIST_H__
+//  ParseList.h
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
+#pragma once
+#ifndef PARSE_LIST_H_
+#define PARSE_LIST_H_
+
 #include <set>
 #include <map>
 #include "Registration.h"
@@ -22,11 +26,11 @@ class TermTable
   TermTable();
   ~TermTable();
   
-  void Insert(int inTermNo, Quadruplet* inQuad);
-  QuadSet* Find(int inTermNo);
+  void insert(int inTermNo, Quadruplet* inQuad);
+  QuadSet* find(int inTermNo);
   
  private:
-  QuadSetMap mQuadSetMap;
+  QuadSetMap quad_set_map_;
 };
 
 
@@ -36,17 +40,17 @@ class ParseList
   ParseList(int n);
   ~ParseList(void);
   
-  void Insert(int x, int y, int inTermNo, Quadruplet* pe);
-  QuadSet* Find(int x, int y, int inTermNo);
+  void insert(int x, int y, int inTermNo, Quadruplet* pe);
+  QuadSet* find(int x, int y, int inTermNo);
   
  protected:
-  void InitParseList(int n);
-  void Clear(void);
-  TermTable* &TTable(int i, int j) { return mTermTable[i + j*mSize]; };
+  void init_parse_list(int n);
+  void clear(void);
+  TermTable* &term_table(int i, int j) { return term_table_[i + j*size_]; };
   
  private:
-   int mSize;
-  TermTable** mTermTable;
+   int size_;
+  TermTable** term_table_;
 };
 
-#endif // __PARSE_LIST_H__
+#endif // PARSE_LIST_H_

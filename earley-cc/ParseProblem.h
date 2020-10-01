@@ -1,9 +1,12 @@
-//---------- ParseProblem.h
-// 2000.1 Atsushi Tagami
-//  構文解析問題を解くクラス群
-// $Id: ParseProblem.h,v 1.3 2000/03/07 11:49:09 atsushi Exp $
-#ifndef __PARSE_PROGLEM_H__
-#define __PARSE_PROGLEM_H__
+//  ParseProblem.h
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
+#pragma once
+#ifndef PARSE_PROGLEM_H_
+#define PARSE_PROGLEM_H_
+
 #include "Registration.h"
 #include "Grammar.h"
 #include "ElementPool.h"
@@ -12,83 +15,80 @@
 // 構文解析問題用Quadruplet
 class ParseQuad : public Quadruplet
 {
- public:
-  
+public:
   ParseQuad(int inRuleNo, int inDotLoc,
-	    ElementPool* inAllocator, int inLimit, int inMode)
-    : Quadruplet(inRuleNo, inDotLoc),
-    mElementPool(inAllocator), mLimit(inLimit), mMode(inMode){};
+            ElementPool *inAllocator, int inLimit, int inMode)
+      : Quadruplet(inRuleNo, inDotLoc),
+        element_pool_(inAllocator), limit_(inLimit), mode_(inMode){};
   virtual ~ParseQuad(){};
- 
-  void Add(double inProb);
-  void AddNext(Quadruplet* inQuadruplet);
-  void Marge(Quadruplet* inQuadruplet);
-  void Multiply(Quadruplet* inElement);
-  
-	std::list<Element*>& GetProbList(void){ return mProbs; };
 
- protected:
-	void Limit(std::list<Element*>& inElement);
+  void add(double inProb);
+  void add_next(Quadruplet *inQuadruplet);
+  void marge(Quadruplet *inQuadruplet);
+  void multiply(Quadruplet *inElement);
 
-    
- private:
-	std::list<Element*>  mProbs;
-  ElementPool*    mElementPool;
-  int             mLimit;
-  int             mMode;
+  std::list<Element *> &get_prob_list(void) { return probs_; };
+
+protected:
+  void limit(std::list<Element *> &inElement);
+
+private:
+  std::list<Element *> probs_;
+  ElementPool *element_pool_;
+  int limit_;
+  int mode_;
 };
-
-
 
 //--
 class Tracer
 {
- public:
-          Tracer(Grammar* inGrammar = NULL);
+public:
+  Tracer(Grammar *inGrammar = NULL);
   virtual ~Tracer();
-	       
-  virtual void Init(double inProb);
-  virtual void RutineR(Element* e);
-  virtual void Finish(void);
-  
- protected:
-  virtual void RutineRSelf(Element* e);
 
-  Grammar* mGrammar;
+  virtual void init(double inProb);
+  virtual void reverse(Element *e);
+  virtual void finish(void);
+
+protected:
+  virtual void reverse_self(Element *e);
+
+  Grammar *grammar_;
 };
-
 
 //--
 class ParseRegistration : public Registration
 {
- public:
-  
-  enum { mode_Number, mode_MinNumber };
+public:
+  enum
+  {
+    mode_Number,
+    mode_MinNumber
+  };
 
-  ParseRegistration(Grammar* inGrammar);
+  ParseRegistration(Grammar *inGrammar);
   virtual ~ParseRegistration();
-  
-  void SetLimit(int inLimit);
 
-	virtual void Regist(const std::string &inString);
-  
-  int  GetResultNum(void);
-  void BackTrace(int inIndex, Tracer* inTracer = NULL);
-  void BackTraceAll(Tracer* inTracer = NULL);
-    
-  void SetMode(int inNewMode){ mMode = inNewMode; };
+  void set_limit(int inLimit);
 
- protected:
-  Quadruplet* CreateQuad(int inRuleNo, int inDotLoc);
-  void InitRegistration(void);
-  
- private:
-  ElementPool* mElementPool;
-  ParseQuad*   mResults;
+  virtual void regist(const std::string &inString);
 
-  int mLimit;
-  int mMode;
+  int get_result_num(void);
+  void back_trace(int inIndex, Tracer *inTracer = NULL);
+  void back_trace_all(Tracer *inTracer = NULL);
+
+  void set_mode(int inNewMode) { mode_ = inNewMode; };
+
+protected:
+  Quadruplet *create_quad(int inRuleNo, int inDotLoc);
+  void init_registration(void);
+
+private:
+  ElementPool *element_pool_;
+  ParseQuad *results_;
+
+  int limit_;
+  int mode_;
 };
 
-
-#endif //__PARSE_PROGLEM_H__
+#endif //PARSE_PROGLEM_H_

@@ -1,6 +1,8 @@
-// main
-//  mainプログラム(の一例)
-// $Id: main.cc,v 1.6 2000/03/07 11:49:09 atsushi Exp $
+//  main.cpp
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
 #include <iostream>
 #include <fstream>
 
@@ -20,9 +22,9 @@ int main(){
   }
   // 2. 文法ファイルのstreamから文法のデータベースを作成する            
   Grammar grammar(ifs);
-  if(!grammar.Good()){
+  if(!grammar.good()){
     std::cerr << "Error: Rule file error " 
-	 << RULEFILENAME << ":" << grammar.ErrorLine() << std::endl;
+	 << RULEFILENAME << ":" << grammar.error_line() << std::endl;
     exit(0);
   }
   ifs.close();
@@ -40,21 +42,21 @@ int main(){
   // 4. 構文解析用パーザクラスを生成する.
   ParseRegistration     preg(&grammar);
   // 5. 上位いくつの木を導出するかの設定(初期値は10)
-  preg.SetLimit(10);
+  preg.set_limit(10);
   // 6. 構文解析をおこなう
-  preg.Regist(input);
+  preg.regist(input);
   // 7. バックトレースを行う 
   std::cout << "-- 構文解析 --" << std::endl;
-  preg.BackTraceAll();
+  preg.back_trace_all();
 
   //== 認定問題
   // 8. 認定問題用パーザクラスを生成する.
   AuthorizeRegistration areg(&grammar);
   // 9. パージングする
-  areg.Regist(input);
+  areg.regist(input);
   //10. 結果の出力
   std::cout << "-- 認定問題 --" << std::endl;
-  std::cout << areg.CalcProbability() << std::endl;
+  std::cout << areg.calc_probability() << std::endl;
   
   return 0;
 };

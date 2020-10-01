@@ -1,55 +1,59 @@
-// Grammar.h
-//   1999 Atsushi Tagami
-// $Id: Grammar.h,v 1.3 2000/02/01 23:41:18 atsushi Exp $
-#ifndef __GRAMMAR_H__
-#define __GRAMMAR_H__
+//  Grammar.h
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
+#pragma once
+#ifndef GRAMMAR_H_
+#define GRAMMAR_H_
+
 #include <string>
 #include <vector>
 #include <map>
 
 typedef std::map<std::string, int> TermList;
-// Rule				  
-typedef struct rule{
-  int		    iLeft;	       
-	std::vector<int>	    iRight;           
-  double	    dProb;	      
+// Rule
+typedef struct rule
+{
+	int left;
+	std::vector<int> right;
+	double prob;
 } Rule;
-
 
 class Grammar
 {
- public:
-	Grammar(std::istream& is);
-  
-	int  TermToNum(const std::string &term);
-	void NumToTerm(std::string &outTerm, int inTermID);
-	void NumToRule(std::string &outRule, int inRuleNo);
-  
-  int TermAfterDot(int ruleno, int dotloc);
-  
-  int TermNum(void){ return mTerms.size(); };
-  int RuleNum(void){ return mRules.size(); };
-  
-  int IsLocked(void){ return mLock; };
-  const Rule* GetRule(int inRuleNo){ return mRules[inRuleNo]; };
-  int GetStartTerm(void){ return mStartTerm; };
-  
-  bool Good(void) { return mErrorLine == 0; };
-  int  ErrorLine(void) { return mErrorLine; };
-  
- protected:
-	void Init(std::istream& is);
-	void Lock(void){ mLock = true; };
-	void UnLock(void){ mLock = false; };
-  
- private:
-	int mLock;
-	int mErrorLine;
-	int mTermNum;
-	std::vector<Rule*> mRules;
-	std::map<std::string, int> mTerms;
+public:
+	Grammar(std::istream &is);
 
-  int mStartTerm;
+	int term_to_id(const std::string &term);
+	void id_to_term(std::string &outTerm, int inTermID);
+	void id_to_rule(std::string &outRule, int inRuleNo);
+
+	int term_after_dot(int ruleno, int dotloc);
+
+	int term_num(void) { return terms_.size(); };
+	int rule_num(void) { return rules_.size(); };
+
+	int is_locked(void) { return lock_; };
+	const Rule *get_rule(int inRuleNo) { return rules_[inRuleNo]; };
+	int get_start_term(void) { return start_term_; };
+
+	bool good(void) { return error_line_ == 0; };
+	int error_line(void) { return error_line_; };
+
+protected:
+	void init(std::istream &is);
+	void lock(void) { lock_ = true; };
+	void unlock(void) { lock_ = false; };
+
+private:
+	int lock_;
+	int error_line_;
+	int term_num_;
+	std::vector<Rule *> rules_;
+	std::map<std::string, int> terms_;
+
+	int start_term_;
 };
 
-#endif// __GRAMMAR_H__
+#endif // GRAMMAR_H_

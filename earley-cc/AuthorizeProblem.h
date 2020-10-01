@@ -1,9 +1,12 @@
-//---------- AuthorizeProblem.h
-// 2000.1 Atsushi Tagami
-//  認定問題を解くクラス群
-// $Id: AuthorizeProblem.h,v 1.1 2000/02/02 00:14:21 atsushi Exp $
-#ifndef __AUTHORIZE_PROGLEM_H___
-#define __AUTHORIZE_PROGLEM_H___
+//  AuthorizeProblem.h
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
+#pragma once
+#ifndef AUTHORIZE_PROGLEM_H_
+#define AUTHORIZE_PROGLEM_H_
+
 #include "Registration.h"
 #include "Grammar.h"
 
@@ -11,34 +14,33 @@
 // 構文解析問題用Quadruplet
 class AuthorizeQuad : public Quadruplet
 {
- public:
-  AuthorizeQuad(int inRuleNo, int inDotLoc) 
-    : Quadruplet(inRuleNo, inDotLoc), mProb(0.0){};
+public:
+  AuthorizeQuad(int inRuleNo, int inDotLoc)
+      : Quadruplet(inRuleNo, inDotLoc), prob_(0.0){};
   ~AuthorizeQuad(){};
- 
-  void Add(double inProb);
-  void AddNext(Quadruplet* inQuadruplet);
-  void Marge(Quadruplet* inQuadruplet);
-  void Multiply(Quadruplet* inElement);
-  
-  double GetProbability(void){ return mProb; };
-  
- private:
-  double mProb;
-};
 
+  void add(double inProb);
+  void add_next(Quadruplet *inQuadruplet);
+  void marge(Quadruplet *inQuadruplet);
+  void multiply(Quadruplet *inElement);
+
+  double get_probability(void) { return prob_; };
+
+private:
+  double prob_;
+};
 
 //--
 class AuthorizeRegistration : public Registration
 {
- public:
-  AuthorizeRegistration(Grammar* inGrammar);
+public:
+  AuthorizeRegistration(Grammar *inGrammar);
   ~AuthorizeRegistration();
-  
-  double CalcProbability(void);
 
- protected:
-  Quadruplet* CreateQuad(int inRuleNo, int inDotLoc);
+  double calc_probability(void);
+
+protected:
+  Quadruplet *create_quad(int inRuleNo, int inDotLoc);
 };
 
-#endif //__AUTHORIZE_PROGLEM_H__
+#endif //AUTHORIZE_PROGLEM_H_

@@ -1,6 +1,8 @@
-// test_authorize
-//  認定問題解析プログラム
-// $Id: test_authorize.cc,v 1.1 2000/02/01 23:41:19 atsushi Exp $
+//  test_authorize.cpp
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
 #include <iostream>
 #include <fstream>
 
@@ -19,9 +21,9 @@ int main(){
 	}
 	// 2. 文法ファイルのstreamから文法のデータベースを作成する            
 	Grammar grammar(ifs);
-	if(!grammar.Good()){
+	if(!grammar.good()){
 		std::cerr << "Error: Rule file error " 
-				<< RULEFILENAME << ":" << grammar.ErrorLine() << std::endl;
+				<< RULEFILENAME << ":" << grammar.error_line() << std::endl;
 		exit(0);
 	}
 	ifs.close();
@@ -39,10 +41,10 @@ int main(){
 	getline(strfs, input);
 	
 	// 5. パージングを行う.
-	rs.Regist(input);
+	rs.regist(input);
 	
 	// 6.バックトレースを行う 
-	std::cout << rs.CalcProbability() << std::endl;
+	std::cout << rs.calc_probability() << std::endl;
 	
 	// 他にもパージングをしたい文字列がある場合, 
 	//5に戻る.

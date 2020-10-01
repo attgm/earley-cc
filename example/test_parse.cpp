@@ -1,6 +1,8 @@
-// test_parse.cc
-//  構文解析プログラム(の一例)
-// $Id: test_parse.cc,v 1.2 2000/03/07 11:49:09 atsushi Exp $
+//  test_parse.cpp
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
 #include <iostream>
 #include <fstream>
 
@@ -19,9 +21,9 @@ int main(){
 	}
 	// 2. 文法ファイルのstreamから文法のデータベースを作成する            
 	Grammar grammar(ifs);
-	if(!grammar.Good()){
+	if(!grammar.good()){
 		std::cerr << "Error: Rule file error " 
-				<< RULEFILENAME << ":" << grammar.ErrorLine() << std::endl;
+				<< RULEFILENAME << ":" << grammar.error_line() << std::endl;
 		exit(0);
 	}
 	ifs.close();
@@ -39,19 +41,19 @@ int main(){
 	getline(strfs, input);
 	
 	// 5. 上位いくつの木を導出するかの設定(初期値は10)
-	rs.SetLimit(10);
+	rs.set_limit(10);
 	
 	// 6. パージングを行う.
-	rs.Regist(input);
+	rs.regist(input);
 	
 	// 7.バックトレースを行う 
 	std::cout << "** call BackTraceAll" << std::endl;
-	rs.BackTraceAll(); // いっぺんに全部やってしまうやりかた
+	rs.back_trace_all(); // いっぺんに全部やってしまうやりかた
 	
-	int num = rs.GetResultNum(); // 1つ1つ呼び出すやりかた
+	int num = rs.get_result_num(); // 1つ1つ呼び出すやりかた
 	for(int i=0; i<num; i++){
 		std::cout << "** call BackTrace" << std::endl;
-		rs.BackTrace(i);
+		rs.back_trace(i);
 	}
 	
 	// 他にもパージングをしたい文字列がある場合, 

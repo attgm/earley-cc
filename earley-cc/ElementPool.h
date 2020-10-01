@@ -1,67 +1,77 @@
-// ElementPool.h
-//  2000 Atsushi Tagami
-// $Id: ElementPool.h,v 1.5 2000/01/31 23:43:10 atsushi Exp $
-#ifndef __ELEMENT_POOL_H__
-#define __ELEMENT_POOL_H__
+//  ElementPool.h
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
+#pragma once
+#ifndef ELEMENT_POOL_H_
+#define ELEMENT_POOL_H_
+
 #include <list>
 
-class  Quadruplet;
+class Quadruplet;
 
-struct Element {
-  double        dProb;
-  Quadruplet    *ptr;
-  Element       *bp1, *bp2;
+struct Element
+{
+  double prob;
+  Quadruplet *ptr;
+  Element *bp1, *bp2;
 };
 
-inline int operator<(const Element& a, const Element& b) {
-  return a.dProb < b.dProb;
+inline int operator<(const Element &a, const Element &b)
+{
+  return a.prob < b.prob;
 };
 
-inline int operator>(const Element& a, const Element& b) {
-  return a.dProb > b.dProb;
+inline int operator>(const Element &a, const Element &b)
+{
+  return a.prob > b.prob;
 };
 
-inline int operator==(const Element& a, const Element& b) {
-  return a.dProb == b.dProb;
+inline int operator==(const Element &a, const Element &b)
+{
+  return a.prob == b.prob;
 };
 
-inline int operator!=(const Element& a, const Element& b) {
-  return a.dProb != b.dProb;
+inline int operator!=(const Element &a, const Element &b)
+{
+  return a.prob != b.prob;
 };
 
-inline int operator<=(const Element& a, const Element& b) {
-  return a.dProb <= b.dProb;
+inline int operator<=(const Element &a, const Element &b)
+{
+  return a.prob <= b.prob;
 };
 
-inline int operator>=(const Element& a, const Element& b) {
-  return a.dProb >= b.dProb;
+inline int operator>=(const Element &a, const Element &b)
+{
+  return a.prob >= b.prob;
 };
 
-
-class ElementPool {
- public:
+class ElementPool
+{
+public:
   ElementPool(void);
   ~ElementPool();
-  
-  Element* New(Element* a, Element* b, double p);
-  Element* New(Element* a = NULL, Element* b = NULL);
-  Element* New(double inProb){ return New(NULL, NULL, inProb); };
 
-  void Clear(void);
-  
- protected:
-  void Insert(Element* inElement){ mElementList.push_back(inElement); };
-  
- private:
-	static ElementPool* sElementPool;
-	std::list<Element*> mElementList;
+  Element *create_new_element(Element *a, Element *b, double p);
+  Element *create_new_element(Element *a = NULL, Element *b = NULL);
+  Element *create_new_element(double inProb) { return create_new_element(NULL, NULL, inProb); };
+
+  void clear(void);
+
+protected:
+  void insert(Element *inElement) { element_list_.push_back(inElement); };
+
+private:
+  static ElementPool *element_pool_;
+  std::list<Element *> element_list_;
 };
 
-
-inline Element*
-ElementPool::New(Element* a, Element* b){
-  return New(a, b, (a != NULL) ? 
-	     ((b != NULL) ? (a->dProb * b->dProb) : a->dProb) : 0);
+inline Element *
+ElementPool::create_new_element(Element *a, Element *b)
+{
+  return create_new_element(a, b, (a != NULL) ? ((b != NULL) ? (a->prob * b->prob) : a->prob) : 0);
 };
 
-#endif //__ELEMENT_POOL_H__
+#endif //ELEMENT_POOL_H_

@@ -1,6 +1,8 @@
-// ElementPool.h
-//  2000 Atsushi Tagami
-// $Id: ElementPool.cc,v 1.4 2000/01/31 23:43:10 atsushi Exp $
+//  ElementPool.cpp
+//    1999 - 2020 Atsushi Tagami
+//
+//  This software is released under the MIT License.
+//  http://opensource.org/licenses/mit-license.php
 #include "ElementPool.h"
 
 //----------- ElementPool
@@ -9,40 +11,38 @@ ElementPool::ElementPool(void)
 {
 }
 
-
 //----------- ~ElementPool
 // ディストラクタ
 ElementPool::~ElementPool(void)
 {
-  Clear();
+  clear();
 }
 
-
-//---------- New
+//---------- create_new_element
 //  新しいエレメントを作成する
-Element*
-ElementPool::New(Element* a, Element* b, double p) {
-  Element* element = new Element;
-  
-  element->dProb = p;
+Element *
+ElementPool::create_new_element(Element *a, Element *b, double p)
+{
+  Element *element = new Element;
+
+  element->prob = p;
   element->bp1 = a;
   element->bp2 = b;
-    
-  Insert(element);
-  
+
+  insert(element);
+
   return element;
 };
 
-
 //----------- Clear
 // すべての要素を削除する
-void
-ElementPool::Clear(void)
+void ElementPool::clear(void)
 {
-	for(std::list<Element*>::iterator it = mElementList.begin(); 
-	it != mElementList.end(); it++){
-		delete *it;
-	}	
-	
-	mElementList.clear();
+  for (std::list<Element *>::iterator it = element_list_.begin();
+       it != element_list_.end(); it++)
+  {
+    delete *it;
+  }
+
+  element_list_.clear();
 }

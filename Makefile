@@ -17,7 +17,7 @@ PARSE_OBJS  = $(addprefix $(OBJECT_DIR)/, $(notdir $(PARSE_MAIN:.cpp=.o)))
 
 AUTHORIZE_BIN  = $(TARGET_DIR)/test_authorize
 AUTHORIZE_MAIN = $(EXAMPLE_DIR)/test_authorize.cpp
-AUTHORIZE_OBJS = $(addprefix $(OBJECT_DIR)/, $(notdir $(EARLEY_MAIN:.cpp=.o)))
+AUTHORIZE_OBJS = $(addprefix $(OBJECT_DIR)/, $(notdir $(AUTHORIZE_MAIN:.cpp=.o)))
 
 EARLEY_BIN  = $(TARGET_DIR)/earley
 EARLEY_MAIN = ./main.cpp
@@ -34,7 +34,7 @@ all: $(EARLEY_BIN) $(PARSE_BIN) $(AUTHORIZE_BIN)
 
 $(LIB_EARLEY) : $(LIB_EARLEY_OBJS)
 	@-mkdir -p $(LIB_DIR)
-	$(AR) rv $@ $(LIB_EARLEY_OBJS)
+	$(AR) cr $@ $(LIB_EARLEY_OBJS)
 
 $(EARLEY_BIN) : $(LIB_EARLEY) $(EARLEY_OBJS)
 	@-mkdir -p $(TARGET_DIR)
