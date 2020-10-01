@@ -1,75 +1,63 @@
-# MakeFile 
-#  $Id:$
-CFLAGS = -O -I$(SOURCE_DIR)
-CPLUSPLUS = g++
+SOURCE_DIR		= ./earley-cc
+EXAMPLE_DIR		= ./example
+LIB_DIR			= ./lib
+TARGET_DIR		= ./bin
+OBJECT_DIR		= ./obj
 
-SOURCE_DIR = earley-cc
-EXAMPLE_DIR = example
+CXXFLAGS 		= -O2 -MMD -Wall -std=c++17 -I$(SOURCE_DIR)
 
-LINK = $(CPLUSPLUS) $(CFLAGS)
+LIB_EARLEY		= $(LIB_DIR)/libEarley.a
+LIB_EARLEY_SRCS = $(wildcard $(SOURCE_DIR)/*.cpp)
+LIB_EARLEY_OBJS = $(addprefix $(OBJECT_DIR)/, $(notdir $(LIB_EARLEY_SRCS:.cpp=.o)))
 
-EARLEY_OBJS = $(SOURCE_DIR)/ElementPool.o \
-		$(SOURCE_DIR)/Grammar.o \
-		$(SOURCE_DIR)/Registration.o \
-		$(SOURCE_DIR)/ParseList.o \
-		$(SOURCE_DIR)/ParseProblem.o \
-		$(SOURCE_DIR)/AuthorizeProblem.o
-
-EARLEY_SRCS = $(SOURCE_DIR)/ElementPool.cc \
-		$(SOURCE_DIR)/Grammar.cc \
-		$(SOURCE_DIR)/Registration.cc \
-		$(SOURCE_DIR)/ParseList.cc \
-		$(SOURCE_DIR)/ParseProblem.cc \
-		$(SOURCE_DIR)/AuthorizeProblem.cc
-
-PARSE_BIN    = test_parse
-PARSE_OBJ    = $(EXAMPLE_DIR)/test_parse.o
-PARSE_MAIN   = $(EXAMPLE_DIR)/test_parse.cc
-
-AUTHORIZE_BIN  = test_authorize
-AUTHORIZE_OBJ  = $(EXAMPLE_DIR)/test_authorize.o
-AUTHORIZE_MAIN = $(EXAMPLE_DIR)/test_authorize.cc
-
-EARLEY_MAIN = main.cc
-EARLEY_OBJ  = main.o
-EARLEY_BIN = earley
-
-OBJS = $(EARLEY_OBJS)
-SRCS = $(EARLEY_SRCS) $(EARLEY_MAIN) $(PARSE_MAIN) $(AUTHORIZE_MAIN)
-PROG = $(PARSE_BIN) $(AUTHORIZE_BIN) $(EARLEY_BIN)
-
-# c.o
-.c.o:
-	$(CC) -c $(CFLAGS) $< -o $@
-
-# cc.o
-.cc.o:
-	$(CPLUSPLUS) -c $(CFLAGS) $< -o $@
-
-all: $(EARLEY_BIN)
+PARSE_BIN    = $(TARGET_DIR)/test_parse
+PARSE_MAIN   = $(EXAMPLE_DIR)/test_parse.cpp
+PARSE_OBJS  = $(addprefix $(OBJECT_DIR)/, $(notdir $(PARSE_MAIN:.cpp=.o)))
 
 
-test: $(PARSE_BIN)  $(AUTHORIZE_BIN) 
+AUTHORIZE_BIN  = $(TARGET_DIR)/test_authorize
+AUTHORIZE_MAIN = $(EXAMPLE_DIR)/test_authorize.cpp
+AUTHORIZE_OBJS = $(addprefix $(OBJECT_DIR)/, $(notdir $(EARLEY_MAIN:.cpp=.o)))
 
+EARLEY_BIN  = $(TARGET_DIR)/earley
+EARLEY_MAIN = ./main.cpp
+EARLEY_OBJS = $(addprefix $(OBJECT_DIR)/, $(notdir $(EARLEY_MAIN:.cpp=.o)))
 
-$(EARLEY_BIN) : $(OBJS) $(EARLEY_OBJ)
-	$(LINK) $(OBJS) $(EARLEY_OBJ) -o $(EARLEY_BIN)
+OBJS = $(LIB_EARLEY_OBJS) $(PARSE_OBJS) $(AUTHORIZE_OBJS) $(EARLEY_OBJS)
+SRCS = $(LIB_EARLEY_SRCS) $(PARSE_MAIN) $(AUTHORIZE_MAIN) $(EARLEY_MAIN)
+BINS = $(PARSE_BIN) $(AUTHORIZE_BIN) $(EARLEY_BIN)
+DEPS = $(OBJS:.o=.d)
 
+.PHONY: all clean depend
 
-$(AUTHORIZE_BIN) : $(OBJS) $(AUTHORIZE_OBJ)
-	$(LINK) $(AUTHORIZE_MAIN) $(OBJS) -o $(AUTHORIZE_BIN)
+all: $(EARLEY_BIN) $(PARSE_BIN) $(AUTHORIZE_BIN)
 
-$(PARSE_BIN) : $(OBJS) $(PARSE_OBJ)
-	$(LINK) $(PARSE_OBJ) $(OBJS) -o $(PARSE_BIN)
+$(LIB_EARLEY) : $(LIB_EARLEY_OBJS)
+	@-mkdir -p $(LIB_DIR)
+	$(AR) rv $@ $(LIB_EARLEY_OBJS)
+
+$(EARLEY_BIN) : $(LIB_EARLEY) $(EARLEY_OBJS)
+	@-mkdir -p $(TARGET_DIR)
+	$(LINK.cc) $(LIB_EARLEY) $(EARLEY_OBJS) -o $(EARLEY_BIN)
+
+$(AUTHORIZE_BIN) : $(LIB_EARLEY) $(AUTHORIZE_OBJS)
+	@-mkdir -p $(TARGET_DIR)
+	$(LINK.cc) $(LIB_EARLEY) $(AUTHORIZE_OBJS) -o $(AUTHORIZE_BIN)
+
+$(PARSE_BIN) : $(LIB_EARLEY) $(PARSE_OBJS)
+	@-mkdir -p $(TARGET_DIR)
+	$(LINK.cc) $(LIB_EARLEY) $(PARSE_OBJS) -o $(PARSE_BIN)
+
+$(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cpp	
+	@-mkdir -p $(OBJECT_DIR)
+	$(COMPILE.cc) $<  -o $@ 
+
+$(OBJECT_DIR)/%.o: $(EXAMPLE_DIR)/%.cpp	
+	@-mkdir -p $(OBJECT_DIR)
+	$(COMPILE.cc) $<  -o $@ 
 
 clean   : 
-	rm -f *.o $(SOURCE_DIR)/*.o $(EXAMPLE_DIR)/*.o $(PROG)
+	-$(RM) $(BINS) $(DEPS) $(OBJS) \
+		*~ .*~ core
 
-depend: $(SRCS)
-	cp Makefile Makefile.bak
-	makedepend -- $(CFLAGS) $(SRCS) > depends
-
-# ��¸�ط�
-
-# DO NOT DELETE THIS LINE -- make depend uses it
-
+-include  $(DEPS)
