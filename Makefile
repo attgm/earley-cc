@@ -4,7 +4,7 @@ LIB_DIR			= ./lib
 TARGET_DIR		= ./bin
 OBJECT_DIR		= ./obj
 
-CXXFLAGS 		= -O2 -MMD -Wall -std=c++17 -I$(SOURCE_DIR)
+CXXFLAGS 		= -g -MMD -Wall -std=c++17 -I$(SOURCE_DIR)
 
 LIB_EARLEY		= $(LIB_DIR)/libEarley.a
 LIB_EARLEY_SRCS = $(wildcard $(SOURCE_DIR)/*.cpp)
