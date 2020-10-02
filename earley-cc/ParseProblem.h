@@ -7,19 +7,20 @@
 #ifndef PARSE_PROGLEM_H_
 #define PARSE_PROGLEM_H_
 
-#include "Registration.h"
-#include "Grammar.h"
 #include "ElementPool.h"
+#include "Grammar.h"
+#include "Registration.h"
 
 //-- ParseQuad
 // 構文解析問題用Quadruplet
-class ParseQuad : public Quadruplet
-{
-public:
-  ParseQuad(int inRuleNo, int inDotLoc,
-            ElementPool *inAllocator, int inLimit, int inMode)
+class ParseQuad : public Quadruplet {
+ public:
+  ParseQuad(int inRuleNo, int inDotLoc, ElementPool *inAllocator, int inLimit,
+            int inMode)
       : Quadruplet(inRuleNo, inDotLoc),
-        element_pool_(inAllocator), limit_(inLimit), mode_(inMode){};
+        element_pool_(inAllocator),
+        limit_(inLimit),
+        mode_(inMode){};
   virtual ~ParseQuad(){};
 
   void add(double inProb);
@@ -29,10 +30,10 @@ public:
 
   std::list<Element *> &get_prob_list(void) { return probs_; };
 
-protected:
+ protected:
   void limit(std::list<Element *> &inElement);
 
-private:
+ private:
   std::list<Element *> probs_;
   ElementPool *element_pool_;
   int limit_;
@@ -40,9 +41,8 @@ private:
 };
 
 //--
-class Tracer
-{
-public:
+class Tracer {
+ public:
   Tracer(Grammar *inGrammar = NULL);
   virtual ~Tracer();
 
@@ -50,21 +50,16 @@ public:
   virtual void reverse(Element *e);
   virtual void finish(void);
 
-protected:
+ protected:
   virtual void reverse_self(Element *e);
 
   Grammar *grammar_;
 };
 
 //--
-class ParseRegistration : public Registration
-{
-public:
-  enum
-  {
-    mode_Number,
-    mode_MinNumber
-  };
+class ParseRegistration : public Registration {
+ public:
+  enum { mode_Number, mode_MinNumber };
 
   ParseRegistration(Grammar *inGrammar);
   virtual ~ParseRegistration();
@@ -79,11 +74,11 @@ public:
 
   void set_mode(int inNewMode) { mode_ = inNewMode; };
 
-protected:
+ protected:
   Quadruplet *create_quad(int inRuleNo, int inDotLoc);
   void init_registration(void);
 
-private:
+ private:
   ElementPool *element_pool_;
   ParseQuad *results_;
 
@@ -91,4 +86,4 @@ private:
   int mode_;
 };
 
-#endif //PARSE_PROGLEM_H_
+#endif  // PARSE_PROGLEM_H_

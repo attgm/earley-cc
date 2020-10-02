@@ -7,22 +7,15 @@
 
 //----------- ElementPool
 // コンストラクタ
-ElementPool::ElementPool(void)
-{
-}
+ElementPool::ElementPool(void) {}
 
 //----------- ~ElementPool
 // ディストラクタ
-ElementPool::~ElementPool(void)
-{
-  clear();
-}
+ElementPool::~ElementPool(void) { clear(); }
 
 //---------- create_new_element
 //  新しいエレメントを作成する
-Element *
-ElementPool::create_new_element(Element *a, Element *b, double p)
-{
+Element *ElementPool::create_new_element(Element *a, Element *b, double p) {
   Element *element = new Element;
 
   element->prob = p;
@@ -36,11 +29,9 @@ ElementPool::create_new_element(Element *a, Element *b, double p)
 
 //----------- Clear
 // すべての要素を削除する
-void ElementPool::clear(void)
-{
+void ElementPool::clear(void) {
   for (std::list<Element *>::iterator it = element_list_.begin();
-       it != element_list_.end(); it++)
-  {
+       it != element_list_.end(); it++) {
     delete *it;
   }
 
