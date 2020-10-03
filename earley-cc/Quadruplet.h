@@ -15,12 +15,7 @@ public:
       : rule_no_(inRuleNo), dot_loc_(inDotLoc){};
   virtual ~Quadruplet(){};
 
-  virtual void add(double inProb) = 0;
-  virtual void add_next(Quadruplet *inQuadruplet) = 0;
-  virtual void marge(Quadruplet *inQuadruplet) = 0;
-  virtual void multiply(Quadruplet *inQuadruplet) = 0;
-
-  int get_rule_no(void) { return rule_no_; };
+  int get_rule_id(void) { return rule_no_; };
   int get_dot_loc(void) { return dot_loc_; };
 
 private:

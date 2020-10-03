@@ -73,7 +73,10 @@ public:
   void set_mode(int inNewMode) { mode_ = inNewMode; };
 
 protected:
-  ParseQuad *create_quad(int inRuleNo, int inDotLoc);
+  std::unique_ptr<ParseQuad> create_quad(int inRuleNo, int inDotLoc) {
+    return std::make_unique<ParseQuad>(inRuleNo, inDotLoc, element_pool_,
+                                       limit_, mode_);
+  }
   void init_registration(void);
 
 private:

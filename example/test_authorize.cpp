@@ -41,14 +41,17 @@ int main() {
   std::string input;
   getline(strfs, input);
 
-  // 5. パージングを行う.
-  rs.regist(input);
+  try {
+    // 5. パージングを行う.
+    rs.regist(input);
 
-  // 6.バックトレースを行う
-  std::cout << rs.calc_probability() << std::endl;
+    // 6.バックトレースを行う
+    std::cout << rs.calc_probability() << std::endl;
 
-  // 他にもパージングをしたい文字列がある場合,
-  // 5に戻る.
-
+    // 他にもパージングをしたい文字列がある場合,
+    // 5に戻る.
+  } catch (std::runtime_error e) {
+    std::cerr << "Error: " << e.what() << std::endl;
+  }
   return 0;
 };

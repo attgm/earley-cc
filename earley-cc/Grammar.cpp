@@ -102,9 +102,8 @@ int Grammar::term_after_dot(int rule_id, int dot_locate) {
 //-- id_to_rule
 //  convert rule id to string
 std::string Grammar::id_to_rule(int rule_id) {
-  std::string rule_string;
   auto rule = get_rule(rule_id);
-  id_to_term(rule->left);
+  std::string rule_string = id_to_term(rule->left);
   rule_string += " -> ";
 
   try {

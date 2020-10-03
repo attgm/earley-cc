@@ -41,25 +41,28 @@ int main() {
   std::string input;
   getline(strfs, input);
 
-  //== 構文解析
-  // 4. 構文解析用パーザクラスを生成する.
-  ParseRegistration preg(grammar);
-  // 5. 上位いくつの木を導出するかの設定(初期値は10)
-  preg.set_limit(10);
-  // 6. 構文解析をおこなう
-  preg.regist(input);
-  // 7. バックトレースを行う
-  std::cout << "-- 構文解析 --" << std::endl;
-  preg.back_trace_all();
+  try {
+    //== 構文解析
+    // 4. 構文解析用パーザクラスを生成する.
+    ParseRegistration preg(grammar);
+    // 5. 上位いくつの木を導出するかの設定(初期値は10)
+    preg.set_limit(10);
+    // 6. 構文解析をおこなう
+    preg.regist(input);
+    // 7. バックトレースを行う
+    std::cout << "-- 構文解析 --" << std::endl;
+    preg.back_trace_all();
 
-  //== 認定問題
-  // 8. 認定問題用パーザクラスを生成する.
-  AuthorizeRegistration areg(grammar);
-  // 9. パージングする
-  areg.regist(input);
-  // 10. 結果の出力
-  std::cout << "-- 認定問題 --" << std::endl;
-  std::cout << areg.calc_probability() << std::endl;
-
+    //== 認定問題
+    // 8. 認定問題用パーザクラスを生成する.
+    AuthorizeRegistration areg(grammar);
+    // 9. パージングする
+    areg.regist(input);
+    // 10. 結果の出力
+    std::cout << "-- 認定問題 --" << std::endl;
+    std::cout << areg.calc_probability() << std::endl;
+  } catch (std::runtime_error e) {
+    std::cerr << "Error: " << e.what() << std::endl;
+  }
   return 0;
 };

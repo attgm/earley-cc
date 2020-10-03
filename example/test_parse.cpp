@@ -43,22 +43,24 @@ int main() {
 
   // 5. 上位いくつの木を導出するかの設定(初期値は10)
   rs.set_limit(10);
+  try {
+    // 6. パージングを行う.
+    rs.regist(input);
 
-  // 6. パージングを行う.
-  rs.regist(input);
+    // 7.バックトレースを行う
+    std::cout << "** call BackTraceAll" << std::endl;
+    rs.back_trace_all(); // いっぺんに全部やってしまうやりかた
 
-  // 7.バックトレースを行う
-  std::cout << "** call BackTraceAll" << std::endl;
-  rs.back_trace_all(); // いっぺんに全部やってしまうやりかた
+    int num = rs.get_result_num(); // 1つ1つ呼び出すやりかた
+    for (int i = 0; i < num; i++) {
+      std::cout << "** call BackTrace" << std::endl;
+      rs.back_trace(i);
+    }
 
-  int num = rs.get_result_num(); // 1つ1つ呼び出すやりかた
-  for (int i = 0; i < num; i++) {
-    std::cout << "** call BackTrace" << std::endl;
-    rs.back_trace(i);
+    // 他にもパージングをしたい文字列がある場合,
+    // 4に戻る.
+  } catch (std::runtime_error e) {
+    std::cerr << "Error: " << e.what() << std::endl;
   }
-
-  // 他にもパージングをしたい文字列がある場合,
-  // 4に戻る.
-
   return 0;
 };

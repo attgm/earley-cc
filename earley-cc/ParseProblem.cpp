@@ -139,27 +139,21 @@ void ParseRegistration::regist(const std::string &inString) {
 
   // 開始記号から始まる要素を取り出す
   // [S->γ.,0,n]なる要素を検索する(実際は[*->*.,0,n] )
-  QuadSet *unit = parse_list_->find(0, input_length_, 0);
+  auto unit = parse_list_->find(0, input_length_, 0);
   if (!unit) {
     return;
   }
   // 結果の列を取り出す
-  results_ = dynamic_cast<ParseQuad *>(create_quad(-1, -1));
-  for (QuadSet::iterator it = unit->begin(); it != unit->end(); it++) {
-    Quadruplet *element = *it;
+  results_ = create_quad(-1, -1).get();
+  for (auto it = unit->begin(); it != unit->end(); it++) {
+    auto element = (*it).get();
     // もし左辺が開始記号だった場合
-    if ((grammar_->get_rule(element->get_rule_no()))->left ==
+    if ((grammar_->get_rule(element->get_rule_id()))->left ==
         grammar_->get_root_term_id()) {
       // マージソートでk個だけ取り出す
       results_->marge(element);
     }
   }
-}
-
-//---------- ParseRegistration::CreateQuad [protected]
-//
-ParseQuad *ParseRegistration::create_quad(int inRuleNo, int inDotLoc) {
-  return new ParseQuad(inRuleNo, inDotLoc, element_pool_, limit_, mode_);
 }
 
 //----------ParseRegistration::BackTrace
@@ -240,7 +234,7 @@ void Tracer::reverse(Element *e) {
 //  [A -> ・γ, i, j] となった時に呼び出される.
 //  実際ここだけをover writeすればいいと思われる.
 void Tracer::reverse_self(Element *e) {
-  auto rule = grammar_->id_to_rule(e->ptr->get_rule_no());
+  auto rule = grammar_->id_to_rule(e->ptr->get_rule_id());
   std::cout << rule << std::endl;
 }
 

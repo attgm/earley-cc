@@ -7,48 +7,75 @@
 #ifndef PARSE_LIST_H_
 #define PARSE_LIST_H_
 
+#include "Quadruplet.h"
+#include <cassert>
 #include <map>
 #include <set>
 
-#include "Quadruplet.h"
-
-struct LessQuadruplet : std::binary_function<Quadruplet *, Quadruplet *, bool> {
-  bool operator()(const Quadruplet *a, const Quadruplet *b) const {
+template <class Q>
+struct LessQuadruplet
+    : std::binary_function<std::unique_ptr<Q>, std::unique_ptr<Q>, bool> {
+  bool operator()(std::unique_ptr<Q> const &a,
+                  std::unique_ptr<Q> const &b) const {
     return *a < *b;
   };
 };
 
-typedef std::set<Quadruplet *, LessQuadruplet> QuadSet;
-typedef std::map<int, QuadSet *> QuadSetMap;
+template <class Q>
+using QuadSet = std::set<std::unique_ptr<Q>, LessQuadruplet<Q>>;
 
-class TermTable {
+template <class Q>
+using QuadSetMap = std::map<int, std::unique_ptr<QuadSet<Q>>>;
+
+template <class Q> class ParseList {
 public:
-  TermTable();
-  ~TermTable();
+  ParseList(int n) : size_(n) { init_parse_list(); };
 
-  void insert(int inTermNo, Quadruplet *inQuad);
-  QuadSet *find(int inTermNo);
+  void insert(int i, int j, int term_id, std::unique_ptr<Q> quadruplet) {
 
-private:
-  QuadSetMap quad_set_map_;
-};
+    auto table = term_table(i, j);
+    if (auto it = table->find(term_id); it != end(*table)) {
+      auto unit = it->second.get();
+      if (auto unit_it = unit->find(quadruplet); unit_it != end(*unit)) {
+        (*unit_it)->marge(quadruplet.get());
+      } else {
+        unit->insert(std::move(quadruplet));
+      }
+    } else {
+      auto new_unit = std::make_unique<QuadSet<Q>>();
+      new_unit->insert(std::move(quadruplet));
+      table->emplace(term_id, std::move(new_unit));
+    }
+  };
 
-class ParseList {
-public:
-  ParseList(int n);
-  ~ParseList(void);
-
-  void insert(int x, int y, int inTermNo, Quadruplet *pe);
-  QuadSet *find(int x, int y, int inTermNo);
+  const QuadSet<Q> *find(int i, int j, int term_id) {
+    auto table = term_table(i, j);
+    auto it = table->find(term_id);
+    return (it != end(*table) ? it->second.get() : nullptr);
+  };
 
 protected:
-  void init_parse_list(int n);
-  void clear(void);
-  TermTable *&term_table(int i, int j) { return term_table_[i + j * size_]; };
+  void init_parse_list() {
+    for (int i = 1; i < size_; i++) {
+      for (int j = 0; j < i; j++) {
+        term_table_.emplace(std::make_pair(j, i),
+                            std::make_shared<QuadSetMap<Q>>());
+      }
+    }
+    auto diagonal = std::make_shared<QuadSetMap<Q>>();
+    for (int i = 0; i < size_; i++) {
+      term_table_.emplace(std::make_pair(i, i), diagonal);
+    }
+  }
+
+  std::shared_ptr<QuadSetMap<Q>> term_table(int i, int j) {
+    assert(i >= 0 && j >= 0 && i < size_ && j < size_ && i <= j);
+    return term_table_.at(std::make_pair(i, j));
+  };
 
 private:
   int size_;
-  TermTable **term_table_;
+  std::map<std::pair<int, int>, std::shared_ptr<QuadSetMap<Q>>> term_table_;
 };
 
 #endif // PARSE_LIST_H_

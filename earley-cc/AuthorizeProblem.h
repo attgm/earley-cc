@@ -8,22 +8,22 @@
 #define AUTHORIZE_PROGLEM_H_
 
 #include "Grammar.h"
+#include "Quadruplet.h"
 #include "Registration.h"
 
 //-- AuthorizeQuad
 // 構文解析問題用Quadruplet
 class AuthorizeQuad : public Quadruplet {
 public:
-  AuthorizeQuad(int inRuleNo, int inDotLoc)
-      : Quadruplet(inRuleNo, inDotLoc), prob_(0.0){};
-  ~AuthorizeQuad(){};
+  AuthorizeQuad(int rule_id, int dot_loc)
+      : Quadruplet(rule_id, dot_loc), prob_(0.0){};
 
-  void add(double inProb);
-  void add_next(Quadruplet *inQuadruplet);
-  void marge(Quadruplet *inQuadruplet);
-  void multiply(Quadruplet *inElement);
+  void add(double prob);
+  void add_next(AuthorizeQuad *quadruplet);
+  void marge(AuthorizeQuad *quadruplet);
+  void multiply(AuthorizeQuad *quadruplet);
 
-  double get_probability(void) { return prob_; };
+  double get_probability(void) const { return prob_; };
 
 private:
   double prob_;
@@ -33,12 +33,13 @@ private:
 class AuthorizeRegistration : public Registration<AuthorizeQuad> {
 public:
   AuthorizeRegistration(std::shared_ptr<Grammar> grammar);
-  ~AuthorizeRegistration();
 
   double calc_probability(void);
 
 protected:
-  AuthorizeQuad *create_quad(int inRuleNo, int inDotLoc);
+  std::unique_ptr<AuthorizeQuad> create_quad(int rule_id, int dot_loc) {
+    return std::make_unique<AuthorizeQuad>(rule_id, dot_loc);
+  }
 };
 
 #endif // AUTHORIZE_PROGLEM_H_

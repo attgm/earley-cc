@@ -7,27 +7,24 @@
 
 #include "ParseList.h"
 
-//----------- AuthorizeQuad::add(double inProb)
-void AuthorizeQuad::add(double inProb) { prob_ += inProb; }
+//-- add(double inProb)
+void AuthorizeQuad::add(double prob) { prob_ += prob; }
 
 //----------- AuthorizeQuad::add_next
 // Quadrupletの「次」(dotが1つ右に移動した)要素を挿入する
-void AuthorizeQuad::add_next(Quadruplet *inQuadruplet) {
-  AuthorizeQuad *quad = dynamic_cast<AuthorizeQuad *>(inQuadruplet);
-  prob_ += quad->get_probability();
+void AuthorizeQuad::add_next(AuthorizeQuad *quadruplet) {
+  prob_ += quadruplet->get_probability();
 }
 
 //----------- AuthorizeQuad::Marge
 // inQuadの要素とマージする
-void AuthorizeQuad::marge(Quadruplet *inQuadruplet) {
-  AuthorizeQuad *quad = dynamic_cast<AuthorizeQuad *>(inQuadruplet);
-  prob_ += quad->get_probability();
+void AuthorizeQuad::marge(AuthorizeQuad *quadruplet) {
+  prob_ += quadruplet->get_probability();
 }
 
 //----------- AuthorizeQuad::Multiply
-void AuthorizeQuad::multiply(Quadruplet *inQuadruplet) {
-  AuthorizeQuad *quad = dynamic_cast<AuthorizeQuad *>(inQuadruplet);
-  prob_ *= quad->get_probability();
+void AuthorizeQuad::multiply(AuthorizeQuad *quadruplet) {
+  prob_ *= quadruplet->get_probability();
 }
 
 #pragma mark-- AuthorizeRegistration --
@@ -36,30 +33,20 @@ void AuthorizeQuad::multiply(Quadruplet *inQuadruplet) {
 AuthorizeRegistration::AuthorizeRegistration(std::shared_ptr<Grammar> grammar)
     : Registration<AuthorizeQuad>(grammar) {}
 
-//---------- AuthorizeRegistration::~AuthorizeRegistration
-// distractor
-AuthorizeRegistration::~AuthorizeRegistration() {}
-
-//---------- AuthorizeRegistration::CreateQuad [protected]
-//
-AuthorizeQuad *AuthorizeRegistration::create_quad(int inRuleNo, int inDotLoc) {
-  return new AuthorizeQuad(inRuleNo, inDotLoc);
-}
-
 //----------AuthorizeRegistration::CalcProbability
 // 開始記号で始まるQuadを全部足し合わせた結果を返す
 double AuthorizeRegistration::calc_probability(void) {
   // [S->γ.,0,n]なる要素を検索する
   //   (実際は[*->*.,0,n] )
-  QuadSet *unit = parse_list_->find(0, input_length_, 0);
+  auto unit = parse_list_->find(0, input_length_, 0);
   if (!unit) {
     return 0.0;
   }
 
   double results = 0.0;
-  for (QuadSet::iterator it = unit->begin(); it != unit->end(); it++) {
-    AuthorizeQuad *quad = dynamic_cast<AuthorizeQuad *>(*it);
-    if ((grammar_->get_rule(quad->get_rule_no()))->left ==
+  for (auto it = unit->begin(); it != unit->end(); it++) {
+    auto quad = (*it).get();
+    if ((grammar_->get_rule(quad->get_rule_id()))->left ==
         grammar_->get_root_term_id()) {
       results += quad->get_probability();
     }
