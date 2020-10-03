@@ -25,13 +25,13 @@ typedef struct rule {
 } Rule;
 
 class Grammar {
- public:
+public:
   Grammar(){};
 
   int term_to_id(const std::string &term);
   int term_to_id_or_create(const std::string &term);
   const std::string &id_to_term(int term_id);
-  std::string Grammar::id_to_rule(int rule_id);
+  std::string id_to_rule(int rule_id);
 
   int term_after_dot(int rule_id, int dot_locate);
 
@@ -43,11 +43,11 @@ class Grammar {
 
   void load_rule(std::istream &is);
 
- private:
+private:
   std::vector<std::unique_ptr<Rule>> rules_;
   std::map<std::string, int> terms_;
 
   int root_term_;
 };
 
-#endif  // GRAMMAR_H_
+#endif // GRAMMAR_H_

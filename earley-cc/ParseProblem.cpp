@@ -47,7 +47,8 @@ void ParseQuad::marge(Quadruplet *inQuad) {
   // 元のQuadrupletを始めから見て,
   std::list<Element *>::iterator it = probs_.begin();
   for (std::list<Element *>::iterator i = sl.begin(); i != sl.end(); i++) {
-    while (it != probs_.end() && *(*it) > *(*i)) it++;
+    while (it != probs_.end() && *(*it) > *(*i))
+      it++;
     (*i)->ptr = this;
     probs_.insert(it, *i);
   }
@@ -68,7 +69,8 @@ void ParseQuad::multiply(Quadruplet *inQuad) {
     for (std::list<Element *>::iterator j = sl.begin(); j != sl.end(); j++) {
       Element *newElement = element_pool_->create_new_element(*i, *j);
       newElement->ptr = this;
-      while (it != probs.end() && *(*it) > *newElement) it++;
+      while (it != probs.end() && *(*it) > *newElement)
+        it++;
       if (it == probs.end() && probs.size() > limit_) {
         // ElementPool::RemoveElement(newElement);
         break;
@@ -92,10 +94,8 @@ void ParseQuad::limit(std::list<Element *> &inQuad) {
 #pragma mark-- ParseRegistration --
 //---------- ParseRegistration
 // constractor
-ParseRegistration::ParseRegistration(Grammar *inGrammar)
-    : Registration(inGrammar),
-      results_(NULL),
-      limit_(kDefaultLimit),
+ParseRegistration::ParseRegistration(std::shared_ptr<Grammar> grammar)
+    : Registration<ParseQuad>(grammar), results_(NULL), limit_(kDefaultLimit),
       mode_(kDefaultMode) {
   element_pool_ = new ElementPool;
 }
@@ -158,7 +158,7 @@ void ParseRegistration::regist(const std::string &inString) {
 
 //---------- ParseRegistration::CreateQuad [protected]
 //
-Quadruplet *ParseRegistration::create_quad(int inRuleNo, int inDotLoc) {
+ParseQuad *ParseRegistration::create_quad(int inRuleNo, int inDotLoc) {
   return new ParseQuad(inRuleNo, inDotLoc, element_pool_, limit_, mode_);
 }
 
@@ -189,7 +189,8 @@ void ParseRegistration::back_trace(int inIndex, Tracer *inTracer) {
 //  先頭のElementを取って
 //  バックトレースを行なう
 void ParseRegistration::back_trace_all(Tracer *inTracer) {
-  if (!results_) return;
+  if (!results_)
+    return;
 
   Tracer *tracer = inTracer ? inTracer : new Tracer(grammar_);
 
@@ -210,7 +211,7 @@ void ParseRegistration::back_trace_all(Tracer *inTracer) {
 
 //---------- Tracer::Tracer
 // back traceを行うクラス
-Tracer::Tracer(Grammar *inGrammar) : grammar_(inGrammar) {}
+Tracer::Tracer(std::shared_ptr<Grammar> grammar) : grammar_(grammar) {}
 
 //----------- Tracer::~Tracer
 Tracer::~Tracer() {}

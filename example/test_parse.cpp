@@ -9,8 +9,8 @@
 // 1.ParseProblem.hをincludeすること
 #include "ParseProblem.h"
 
-const char* const RULEFILENAME = "rule.txt";  // 生成規則のファイル名
-const char* const INPUTFILENAME = "input.txt";  // 入力ファイル名
+const char *const RULEFILENAME = "rule.txt";   // 生成規則のファイル名
+const char *const INPUTFILENAME = "input.txt"; // 入力ファイル名
 
 int main() {
   // 文法ファイルを開く
@@ -20,9 +20,9 @@ int main() {
     exit(0);
   }
   // 2. 文法ファイルのstreamから文法のデータベースを作成する
-  Grammar grammar = Grammar();
+  auto grammar = std::make_shared<Grammar>();
   try {
-    grammar.load_rule(ifs);
+    grammar->load_rule(ifs);
   } catch (std::exception e) {
     std::cerr << "Error: Rule file error " << e.what() << std::endl;
     exit(0);
@@ -30,7 +30,7 @@ int main() {
   ifs.close();
 
   // 3. パーザクラスを生成する.
-  ParseRegistration rs(&grammar);
+  ParseRegistration rs(grammar);
 
   // 4. 入力文字列を読み込む
   std::ifstream strfs(INPUTFILENAME);
@@ -49,9 +49,9 @@ int main() {
 
   // 7.バックトレースを行う
   std::cout << "** call BackTraceAll" << std::endl;
-  rs.back_trace_all();  // いっぺんに全部やってしまうやりかた
+  rs.back_trace_all(); // いっぺんに全部やってしまうやりかた
 
-  int num = rs.get_result_num();  // 1つ1つ呼び出すやりかた
+  int num = rs.get_result_num(); // 1つ1つ呼び出すやりかた
   for (int i = 0; i < num; i++) {
     std::cout << "** call BackTrace" << std::endl;
     rs.back_trace(i);

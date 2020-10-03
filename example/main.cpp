@@ -12,8 +12,8 @@
 #include "AuthorizeProblem.h"
 #include "ParseProblem.h"
 
-const char* const RULEFILENAME = "rule.txt";  // 生成規則のファイル名
-const char* const INPUTFILENAME = "input.txt";  // 入力ファイル名
+const char *const RULEFILENAME = "rule.txt";   // 生成規則のファイル名
+const char *const INPUTFILENAME = "input.txt"; // 入力ファイル名
 
 int main() {
   // 文法ファイルを開く
@@ -23,9 +23,9 @@ int main() {
     exit(0);
   }
   // 2. 文法ファイルのstreamから文法のデータベースを作成する
-  Grammar grammar = Grammar();
+  auto grammar = std::make_shared<Grammar>();
   try {
-    grammar.load_rule(ifs);
+    grammar->load_rule(ifs);
   } catch (std::runtime_error e) {
     std::cerr << "Error: " << e.what() << std::endl;
     exit(0);
@@ -43,7 +43,7 @@ int main() {
 
   //== 構文解析
   // 4. 構文解析用パーザクラスを生成する.
-  ParseRegistration preg(&grammar);
+  ParseRegistration preg(grammar);
   // 5. 上位いくつの木を導出するかの設定(初期値は10)
   preg.set_limit(10);
   // 6. 構文解析をおこなう
@@ -54,7 +54,7 @@ int main() {
 
   //== 認定問題
   // 8. 認定問題用パーザクラスを生成する.
-  AuthorizeRegistration areg(&grammar);
+  AuthorizeRegistration areg(grammar);
   // 9. パージングする
   areg.regist(input);
   // 10. 結果の出力

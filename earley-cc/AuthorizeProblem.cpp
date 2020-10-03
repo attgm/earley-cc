@@ -7,11 +7,10 @@
 
 #include "ParseList.h"
 
-#pragma mark-- AuthorizeQuad --
-//----------- AuthorizeQuad::Add(double inProb)
+//----------- AuthorizeQuad::add(double inProb)
 void AuthorizeQuad::add(double inProb) { prob_ += inProb; }
 
-//----------- AuthorizeQuad::AddNext
+//----------- AuthorizeQuad::add_next
 // Quadrupletの「次」(dotが1つ右に移動した)要素を挿入する
 void AuthorizeQuad::add_next(Quadruplet *inQuadruplet) {
   AuthorizeQuad *quad = dynamic_cast<AuthorizeQuad *>(inQuadruplet);
@@ -34,8 +33,8 @@ void AuthorizeQuad::multiply(Quadruplet *inQuadruplet) {
 #pragma mark-- AuthorizeRegistration --
 //---------- AuthorizeRegistration
 // constractor
-AuthorizeRegistration::AuthorizeRegistration(Grammar *inGrammar)
-    : Registration(inGrammar) {}
+AuthorizeRegistration::AuthorizeRegistration(std::shared_ptr<Grammar> grammar)
+    : Registration<AuthorizeQuad>(grammar) {}
 
 //---------- AuthorizeRegistration::~AuthorizeRegistration
 // distractor
@@ -43,7 +42,7 @@ AuthorizeRegistration::~AuthorizeRegistration() {}
 
 //---------- AuthorizeRegistration::CreateQuad [protected]
 //
-Quadruplet *AuthorizeRegistration::create_quad(int inRuleNo, int inDotLoc) {
+AuthorizeQuad *AuthorizeRegistration::create_quad(int inRuleNo, int inDotLoc) {
   return new AuthorizeQuad(inRuleNo, inDotLoc);
 }
 

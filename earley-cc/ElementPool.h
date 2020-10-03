@@ -11,52 +11,46 @@
 
 class Quadruplet;
 
-struct Element
-{
+struct Element {
   double prob;
   Quadruplet *ptr;
   Element *bp1, *bp2;
 };
 
-inline int operator<(const Element &a, const Element &b)
-{
+inline int operator<(const Element &a, const Element &b) {
   return a.prob < b.prob;
 };
 
-inline int operator>(const Element &a, const Element &b)
-{
+inline int operator>(const Element &a, const Element &b) {
   return a.prob > b.prob;
 };
 
-inline int operator==(const Element &a, const Element &b)
-{
+inline int operator==(const Element &a, const Element &b) {
   return a.prob == b.prob;
 };
 
-inline int operator!=(const Element &a, const Element &b)
-{
+inline int operator!=(const Element &a, const Element &b) {
   return a.prob != b.prob;
 };
 
-inline int operator<=(const Element &a, const Element &b)
-{
+inline int operator<=(const Element &a, const Element &b) {
   return a.prob <= b.prob;
 };
 
-inline int operator>=(const Element &a, const Element &b)
-{
+inline int operator>=(const Element &a, const Element &b) {
   return a.prob >= b.prob;
 };
 
-class ElementPool
-{
+class ElementPool {
 public:
   ElementPool(void);
   ~ElementPool();
 
   Element *create_new_element(Element *a, Element *b, double p);
   Element *create_new_element(Element *a = NULL, Element *b = NULL);
-  Element *create_new_element(double inProb) { return create_new_element(NULL, NULL, inProb); };
+  Element *create_new_element(double inProb) {
+    return create_new_element(NULL, NULL, inProb);
+  };
 
   void clear(void);
 
@@ -68,10 +62,9 @@ private:
   std::list<Element *> element_list_;
 };
 
-inline Element *
-ElementPool::create_new_element(Element *a, Element *b)
-{
-  return create_new_element(a, b, (a != NULL) ? ((b != NULL) ? (a->prob * b->prob) : a->prob) : 0);
+inline Element *ElementPool::create_new_element(Element *a, Element *b) {
+  return create_new_element(
+      a, b, (a != NULL) ? ((b != NULL) ? (a->prob * b->prob) : a->prob) : 0);
 };
 
-#endif //ELEMENT_POOL_H_
+#endif // ELEMENT_POOL_H_

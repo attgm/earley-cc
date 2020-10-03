@@ -13,7 +13,7 @@
 //-- AuthorizeQuad
 // 構文解析問題用Quadruplet
 class AuthorizeQuad : public Quadruplet {
- public:
+public:
   AuthorizeQuad(int inRuleNo, int inDotLoc)
       : Quadruplet(inRuleNo, inDotLoc), prob_(0.0){};
   ~AuthorizeQuad(){};
@@ -25,20 +25,20 @@ class AuthorizeQuad : public Quadruplet {
 
   double get_probability(void) { return prob_; };
 
- private:
+private:
   double prob_;
 };
 
 //--
-class AuthorizeRegistration : public Registration {
- public:
-  AuthorizeRegistration(Grammar *inGrammar);
+class AuthorizeRegistration : public Registration<AuthorizeQuad> {
+public:
+  AuthorizeRegistration(std::shared_ptr<Grammar> grammar);
   ~AuthorizeRegistration();
 
   double calc_probability(void);
 
- protected:
-  Quadruplet *create_quad(int inRuleNo, int inDotLoc);
+protected:
+  AuthorizeQuad *create_quad(int inRuleNo, int inDotLoc);
 };
 
-#endif  // AUTHORIZE_PROGLEM_H_
+#endif // AUTHORIZE_PROGLEM_H_
