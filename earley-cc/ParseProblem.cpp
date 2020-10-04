@@ -26,24 +26,22 @@ void ParseQuad::add(double inProb) {
 
 //----------- AddNext
 // Quadrupletの「次」(dotが1つ右に移動した)要素を挿入する
-void ParseQuad::add_next(Quadruplet *inQuadruplet) {
-  ParseQuad *quad = dynamic_cast<ParseQuad *>(inQuadruplet);
-  std::list<Element *> &baseList = quad->get_prob_list();
+void ParseQuad::add_next(ParseQuad *quadruplet) {
+  std::list<Element *> &baseList = quadruplet->get_prob_list();
 
   for (std::list<Element *>::iterator it = baseList.begin();
        it != baseList.end(); it++) {
-    Element *newElement = element_pool_->create_new_element(*it);
-    newElement->ptr = this;
-    probs_.push_back(newElement);
+    Element *new_element = element_pool_->create_new_element(*it);
+    new_element->ptr = this;
+    probs_.push_back(new_element);
   }
 }
 
 //----------- ParseQuad::Marge
 // inQuadの要素とマージする
-void ParseQuad::marge(Quadruplet *inQuad) {
-  ParseQuad *quad = dynamic_cast<ParseQuad *>(inQuad);
+void ParseQuad::marge(ParseQuad *quadruplet) {
   // 確率値のリストへの参照を得る
-  std::list<Element *> &sl = quad->get_prob_list();
+  std::list<Element *> &sl = quadruplet->get_prob_list();
   // 元のQuadrupletを始めから見て,
   std::list<Element *>::iterator it = probs_.begin();
   for (std::list<Element *>::iterator i = sl.begin(); i != sl.end(); i++) {
@@ -57,11 +55,9 @@ void ParseQuad::marge(Quadruplet *inQuad) {
 
 //----------- ParseQuad::Multiply
 // quadrupletとの積をとる
-void ParseQuad::multiply(Quadruplet *inQuad) {
-  ParseQuad *quad = dynamic_cast<ParseQuad *>(inQuad);
-
+void ParseQuad::multiply(ParseQuad *quadruplet) {
   std::list<Element *> probs;
-  std::list<Element *> &sl = quad->get_prob_list();
+  std::list<Element *> &sl = quadruplet->get_prob_list();
 
   for (std::list<Element *>::iterator i = probs_.begin(); i != probs_.end();
        i++) {

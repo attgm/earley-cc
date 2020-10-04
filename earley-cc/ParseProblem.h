@@ -12,19 +12,17 @@
 #include "Registration.h"
 
 //-- ParseQuad
-// 構文解析問題用Quadruplet
+// Quadruplet for parsing problem
 class ParseQuad : public Quadruplet {
 public:
-  ParseQuad(int inRuleNo, int inDotLoc, ElementPool *inAllocator, int inLimit,
-            int inMode)
-      : Quadruplet(inRuleNo, inDotLoc), element_pool_(inAllocator),
-        limit_(inLimit), mode_(inMode){};
+  ParseQuad(int rule_no, int dot_loc, ElementPool *allocator, int limit)
+      : Quadruplet(rule_no, dot_loc), element_pool_(allocator), limit_(limit){};
   virtual ~ParseQuad(){};
 
   void add(double inProb);
-  void add_next(Quadruplet *inQuadruplet);
-  void marge(Quadruplet *inQuadruplet);
-  void multiply(Quadruplet *inElement);
+  void add_next(ParseQuad *quadruplet);
+  void marge(ParseQuad *quadruplet);
+  void multiply(ParseQuad *quadruplet);
 
   std::list<Element *> &get_prob_list(void) { return probs_; };
 
@@ -35,7 +33,6 @@ private:
   std::list<Element *> probs_;
   ElementPool *element_pool_;
   int limit_;
-  int mode_;
 };
 
 //--
@@ -54,7 +51,7 @@ protected:
   std::shared_ptr<Grammar> grammar_;
 };
 
-//--
+//-- ParseRegistration
 class ParseRegistration : public Registration<ParseQuad> {
 public:
   enum { mode_Number, mode_MinNumber };

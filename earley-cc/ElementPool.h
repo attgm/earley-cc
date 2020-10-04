@@ -47,9 +47,9 @@ public:
   ~ElementPool();
 
   Element *create_new_element(Element *a, Element *b, double p);
-  Element *create_new_element(Element *a = NULL, Element *b = NULL);
+  Element *create_new_element(Element *a = nullptr, Element *b = nullptr);
   Element *create_new_element(double inProb) {
-    return create_new_element(NULL, NULL, inProb);
+    return create_new_element(nullptr, nullptr, inProb);
   };
 
   void clear(void);

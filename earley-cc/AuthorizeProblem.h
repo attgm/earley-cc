@@ -19,9 +19,9 @@ public:
       : Quadruplet(rule_id, dot_loc), prob_(0.0){};
 
   void add(double prob);
-  void add_next(AuthorizeQuad *quadruplet);
-  void marge(AuthorizeQuad *quadruplet);
-  void multiply(AuthorizeQuad *quadruplet);
+  void add_next(const AuthorizeQuad *quadruplet);
+  void marge(const AuthorizeQuad *quadruplet);
+  void multiply(const AuthorizeQuad *quadruplet);
 
   double get_probability(void) const { return prob_; };
 
