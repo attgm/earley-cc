@@ -7,7 +7,7 @@
 #ifndef PARSE_PROGLEM_H_
 #define PARSE_PROGLEM_H_
 
-#include "ElementPool.h"
+#include "Element.h"
 #include "Grammar.h"
 #include "Registration.h"
 
@@ -72,7 +72,7 @@ public:
 protected:
   std::unique_ptr<ParseQuad> create_quad(int inRuleNo, int inDotLoc) {
     return std::make_unique<ParseQuad>(inRuleNo, inDotLoc, element_pool_,
-                                       limit_, mode_);
+                                       limit_);
   }
   void init_registration(void);
 
