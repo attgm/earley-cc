@@ -17,7 +17,7 @@ const int kDefaultMode = ParseRegistration::mode_Number;
 // double inProb : 追加する確率値
 void ParseQuad::add(double inProb) {
   Element *newElement = element_pool_->create_new_element(inProb);
-  newElement->ptr = this;
+  newElement->quadruplet_ = this;
   probs_.push_back(newElement);
 
   limit(probs_);
@@ -31,7 +31,7 @@ void ParseQuad::add_next(ParseQuad *quadruplet) {
   for (std::list<Element *>::iterator it = baseList.begin();
        it != baseList.end(); it++) {
     Element *new_element = element_pool_->create_new_element(*it);
-    new_element->ptr = this;
+    new_element->quadruplet_ = this;
     probs_.push_back(new_element);
   }
 }
@@ -46,7 +46,7 @@ void ParseQuad::marge(ParseQuad *quadruplet) {
   for (std::list<Element *>::iterator i = sl.begin(); i != sl.end(); i++) {
     while (it != probs_.end() && *(*it) > *(*i))
       it++;
-    (*i)->ptr = this;
+    (*i)->quadruplet_ = this;
     probs_.insert(it, *i);
   }
   limit(probs_);
@@ -63,7 +63,7 @@ void ParseQuad::multiply(ParseQuad *quadruplet) {
     std::list<Element *>::iterator it = probs.begin();
     for (std::list<Element *>::iterator j = sl.begin(); j != sl.end(); j++) {
       Element *newElement = element_pool_->create_new_element(*i, *j);
-      newElement->ptr = this;
+      newElement->quadruplet_ = this;
       while (it != probs.end() && *(*it) > *newElement)
         it++;
       if (it == probs.end() && probs.size() > limit_) {
@@ -152,24 +152,24 @@ void ParseRegistration::regist(const std::string &inString) {
 }
 
 //----------ParseRegistration::BackTrace
-//  inIndex番目の構文木を得る
-void ParseRegistration::back_trace(int inIndex, Tracer *inTracer) {
-  if (!results_ || inIndex < 0 || inIndex >= results_->get_prob_list().size())
+//  index番目の構文木を得る
+void ParseRegistration::back_trace(int index, Tracer *default_tracer) {
+  if (!results_ || index < 0 || index >= results_->get_prob_list().size())
     return;
-  Tracer *tracer = inTracer ? inTracer : new Tracer(grammar_);
+  Tracer *tracer = default_tracer ? default_tracer : new Tracer(grammar_);
 
   std::list<Element *> &probList = results_->get_prob_list();
-  // inIndex番目のiteratorを求める
+  // index番目のiteratorを求める
   std::list<Element *>::iterator it = probList.begin();
-  advance(it, inIndex);
+  advance(it, index);
 
   if (it != probList.end()) {
-    tracer->init((*it)->prob);
+    tracer->init((*it)->prob_);
     tracer->reverse(*it);
     tracer->finish();
   }
 
-  if (!inTracer) {
+  if (!default_tracer) {
     delete tracer;
   }
 };
@@ -177,21 +177,21 @@ void ParseRegistration::back_trace(int inIndex, Tracer *inTracer) {
 //----------ParseRegistration::BackTraceAll
 //  先頭のElementを取って
 //  バックトレースを行なう
-void ParseRegistration::back_trace_all(Tracer *inTracer) {
+void ParseRegistration::back_trace_all(Tracer *default_tracer) {
   if (!results_)
     return;
 
-  Tracer *tracer = inTracer ? inTracer : new Tracer(grammar_);
+  Tracer *tracer = default_tracer ? default_tracer : new Tracer(grammar_);
 
   // 得た構文木の先頭それぞれからバックトレースを始める
   for (std::list<Element *>::iterator it = results_->get_prob_list().begin();
        it != results_->get_prob_list().end(); it++) {
-    tracer->init((*it)->prob);
+    tracer->init((*it)->prob_);
     tracer->reverse(*it);
     tracer->finish();
   }
 
-  if (!inTracer) {
+  if (!default_tracer) {
     delete tracer;
   }
 };
@@ -215,13 +215,13 @@ void Tracer::init(double inProb) {
 //   実際にバックトレースを行なうルーチン
 //   再帰的に呼び出される
 void Tracer::reverse(Element *e) {
-  if (e->bp1 == NULL) {
+  if (e->back_ptr_1 == NULL) {
     reverse_self(e);
   } else {
-    if (e->bp2 != NULL) {
-      reverse(e->bp2);
+    if (e->back_ptr_2 != NULL) {
+      reverse(e->back_ptr_2);
     }
-    reverse(e->bp1);
+    reverse(e->back_ptr_1);
   }
 }
 
@@ -229,7 +229,7 @@ void Tracer::reverse(Element *e) {
 //  [A -> ・γ, i, j] となった時に呼び出される.
 //  実際ここだけをover writeすればいいと思われる.
 void Tracer::reverse_self(Element *e) {
-  auto rule = grammar_->id_to_rule(e->ptr->get_rule_id());
+  auto rule = grammar_->id_to_rule(e->quadruplet_->get_rule_id());
   std::cout << rule << std::endl;
 }
 

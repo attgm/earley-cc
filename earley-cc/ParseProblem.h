@@ -41,7 +41,7 @@ public:
   Tracer(std::shared_ptr<Grammar> grammar = NULL);
   virtual ~Tracer();
 
-  void init(double inProb);
+  void init(double prob);
   void reverse(Element *e);
   void finish(void);
 
@@ -64,15 +64,14 @@ public:
   void regist(const std::string &inString);
 
   int get_result_num(void);
-  void back_trace(int inIndex, Tracer *inTracer = NULL);
-  void back_trace_all(Tracer *inTracer = NULL);
+  void back_trace(int index, Tracer *default_racer = NULL);
+  void back_trace_all(Tracer *default_racer = NULL);
 
-  void set_mode(int inNewMode) { mode_ = inNewMode; };
+  void set_mode(int new_mode) { mode_ = new_mode; };
 
 protected:
-  std::unique_ptr<ParseQuad> create_quad(int inRuleNo, int inDotLoc) {
-    return std::make_unique<ParseQuad>(inRuleNo, inDotLoc, element_pool_,
-                                       limit_);
+  std::unique_ptr<ParseQuad> create_quad(int rule_no, int dot_loc) {
+    return std::make_unique<ParseQuad>(rule_no, dot_loc, element_pool_, limit_);
   }
   void init_registration(void);
 
