@@ -15,8 +15,8 @@ const int kDefaultMode = ParseRegistration::mode_Number;
 #pragma mark-- ParseQuad --
 //----------- ParseQuad::Add
 // double inProb : 追加する確率値
-void ParseQuad::add(double inProb) {
-  Element *newElement = element_pool_->create_new_element(inProb);
+void ParseQuad::add(double prob) {
+  Element *newElement = element_pool_->create_new_element(prob);
   newElement->quadruplet_ = this;
   probs_.push_back(newElement);
 
@@ -134,20 +134,22 @@ void ParseRegistration::regist(const std::string &inString) {
 
   // 開始記号から始まる要素を取り出す
   // [S->γ.,0,n]なる要素を検索する(実際は[*->*.,0,n] )
-  auto unit = parse_list_->find(0, input_length_, 0);
-  if (!unit) {
-    return;
-  }
-  // 結果の列を取り出す
-  results_ = create_quad(-1, -1).get();
-  for (auto it = unit->begin(); it != unit->end(); it++) {
-    auto element = (*it).get();
-    // もし左辺が開始記号だった場合
-    if ((grammar_->get_rule(element->get_rule_id()))->left ==
-        grammar_->get_root_term_id()) {
-      // マージソートでk個だけ取り出す
-      results_->marge(element);
+  try {
+    auto unit = parse_list_->find(0, input_length_, 0);
+    // 結果の列を取り出す
+    results_ = create_quad(-1, -1).get();
+    for (auto it = unit->begin(); it != unit->end(); it++) {
+      auto element = (*it).get();
+      // もし左辺が開始記号だった場合
+      if ((grammar_->get_rule(element->get_rule_id()))->left ==
+          grammar_->get_root_term_id()) {
+        // マージソートでk個だけ取り出す
+        results_->marge(element);
+      }
     }
+  } catch (std::out_of_range e) {
+    std::cout << "out_of_range" << std::endl;
+    return;
   }
 }
 
@@ -205,13 +207,13 @@ Tracer::Tracer(std::shared_ptr<Grammar> grammar) : grammar_(grammar) {}
 //----------- Tracer::~Tracer
 Tracer::~Tracer() {}
 
-//----------- Tracer::Init
+//----------- Tracer::init
 // back trace開始時に呼ばれる関数
 void Tracer::init(double inProb) {
   std::cout << "prob :" << inProb << std::endl;
 }
 
-//----------- Tracer::RutineR
+//----------- Tracer::reverse
 //   実際にバックトレースを行なうルーチン
 //   再帰的に呼び出される
 void Tracer::reverse(Element *e) {
@@ -225,7 +227,7 @@ void Tracer::reverse(Element *e) {
   }
 }
 
-//----------- Tracer::RutineRSelf
+//----------- Tracer::reverse_self
 //  [A -> ・γ, i, j] となった時に呼び出される.
 //  実際ここだけをover writeすればいいと思われる.
 void Tracer::reverse_self(Element *e) {
@@ -233,6 +235,6 @@ void Tracer::reverse_self(Element *e) {
   std::cout << rule << std::endl;
 }
 
-//----------- Tracer::Finish
+//----------- Tracer::finish
 //   バックトレース終了時に呼び出される
 void Tracer::finish(void) { std::cout << "--" << std::endl; }

@@ -24,17 +24,17 @@ struct LessQuadruplet
 template <class Q>
 using QuadSet = std::set<std::unique_ptr<Q>, LessQuadruplet<Q>>;
 
-template <class Q>
-using QuadSetMap = std::map<int, std::unique_ptr<QuadSet<Q>>>;
-
 template <class Q> class ParseList {
 public:
-  ParseList(int n) : size_(n) { init_parse_list(); };
+  ParseList(int n) : size_(n){};
 
   void insert(int i, int j, int term_id, std::unique_ptr<Q> quadruplet) {
-
-    auto table = term_table(i, j);
-    if (auto it = table->find(term_id); it != end(*table)) {
+    if (i == j) {
+      i = 0;
+      j = 0;
+    }
+    if (auto it = term_table_.find(std::make_tuple(i, j, term_id));
+        it != end(term_table_)) {
       auto unit = it->second.get();
       if (auto unit_it = unit->find(quadruplet); unit_it != end(*unit)) {
         (*unit_it)->marge(quadruplet.get());
@@ -44,38 +44,22 @@ public:
     } else {
       auto new_unit = std::make_unique<QuadSet<Q>>();
       new_unit->insert(std::move(quadruplet));
-      table->emplace(term_id, std::move(new_unit));
+      term_table_.emplace(std::make_tuple(i, j, term_id), std::move(new_unit));
     }
   };
 
-  const QuadSet<Q> *find(int i, int j, int term_id) {
-    auto table = term_table(i, j);
-    auto it = table->find(term_id);
-    return (it != end(*table) ? it->second.get() : nullptr);
-  };
-
-protected:
-  void init_parse_list() {
-    for (int i = 1; i < size_; i++) {
-      for (int j = 0; j < i; j++) {
-        term_table_.emplace(std::make_pair(j, i),
-                            std::make_shared<QuadSetMap<Q>>());
-      }
-    }
-    auto diagonal = std::make_shared<QuadSetMap<Q>>();
-    for (int i = 0; i < size_; i++) {
-      term_table_.emplace(std::make_pair(i, i), diagonal);
-    }
-  }
-
-  std::shared_ptr<QuadSetMap<Q>> term_table(int i, int j) {
+  const QuadSet<Q> *find(int i, int j, int term_id) const {
     assert(i >= 0 && j >= 0 && i < size_ && j < size_ && i <= j);
-    return term_table_.at(std::make_pair(i, j));
+    if (i == j) {
+      return &(*(term_table_.at(std::make_tuple(0, 0, term_id))));
+    } else {
+      return &(*(term_table_.at(std::make_tuple(i, j, term_id))));
+    }
   };
 
 private:
   int size_;
-  std::map<std::pair<int, int>, std::shared_ptr<QuadSetMap<Q>>> term_table_;
+  std::map<std::tuple<int, int, int>, std::unique_ptr<QuadSet<Q>>> term_table_;
 };
 
 #endif // PARSE_LIST_H_

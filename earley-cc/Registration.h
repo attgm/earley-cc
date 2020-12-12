@@ -86,9 +86,9 @@ template <class Q> void Registration<Q>::step1(void) {
 template <class Q> void Registration<Q>::step2(int i, std::vector<int> &input) {
   for (int j = 0; j < i; j++) {
     // search [ * -> * .a(i-1)*,j,i-1]
-    auto base = parse_list_->find(j, i - 1, input[i - 1]);
+    try {
+      auto base = parse_list_->find(j, i - 1, input[i - 1]);
 
-    if (base != nullptr) {
       for (const auto &quad : *base) {
         // insert [ * -> * a(i-1).*,j,i]
         auto quadruplet = create_next_quad(quad.get());
@@ -96,6 +96,7 @@ template <class Q> void Registration<Q>::step2(int i, std::vector<int> &input) {
                                             quadruplet->get_dot_loc());
         parse_list_->insert(j, i, term, std::move(quadruplet));
       }
+    } catch (std::out_of_range e) {
     }
   }
 };
@@ -106,14 +107,14 @@ template <class Q> void Registration<Q>::step3(int i) {
   for (int j = i - 1; j >= 0; j--) {
     for (int k = i - 1; k >= j; k--) {
       // search [ A -> *., k, i]
-      auto first_quads = parse_list_->find(k, i, TERM_EPSILON);
-      if (first_quads != nullptr) {
+      try {
+        auto first_quads = parse_list_->find(k, i, TERM_EPSILON);
         for (const auto &first_quad : *first_quads) {
           int left_term = grammar_->get_rule(first_quad->get_rule_id())->left;
           // search [ * ->  *.A *, j, k]
-          auto second_quads = parse_list_->find(j, k, left_term);
+          try {
+            auto second_quads = parse_list_->find(j, k, left_term);
 
-          if (second_quads != nullptr) {
             for (const auto &second_quad : *second_quads) {
               // insert [ * ->  *A .*, j, i]
               auto new_quad = create_next_quad(second_quad.get());
@@ -122,8 +123,10 @@ template <class Q> void Registration<Q>::step3(int i) {
                                                   new_quad->get_dot_loc());
               parse_list_->insert(j, i, term, std::move(new_quad));
             }
+          } catch (std::out_of_range e) {
           }
         }
+      } catch (std::out_of_range e) {
       }
     }
   }

@@ -115,5 +115,5 @@ std::string Grammar::id_to_rule(int rule_id) {
   } catch (std::runtime_error e) {
     std::cerr << "Error: " << e.what() << std::endl;
   }
-  return std::move(rule_string);
+  return rule_string;
 };
