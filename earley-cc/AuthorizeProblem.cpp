@@ -5,18 +5,14 @@
 //  http://opensource.org/licenses/mit-license.php
 #include "AuthorizeProblem.h"
 #include "ParseList.h"
+#include "Grammar.h"
 #include "iostream"
 
 //-- add
-void AuthorizeQuad::add(double prob) { prob_ += prob; }
+void AuthorizeQuad::add(int /* rule_id */, double prob) { prob_ += prob; }
 
-//-- add_next
-void AuthorizeQuad::add_next(const AuthorizeQuad *quadruplet) {
-  prob_ += quadruplet->get_probability();
-}
-
-//-- marge
-void AuthorizeQuad::marge(const AuthorizeQuad *quadruplet) {
+//-- merge
+void AuthorizeQuad::merge(const AuthorizeQuad *quadruplet) {
   prob_ += quadruplet->get_probability();
 }
 

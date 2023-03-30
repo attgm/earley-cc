@@ -38,7 +38,7 @@ public:
   int term_num(void) { return terms_.size(); };
   int rule_num(void) { return rules_.size(); };
 
-  const Rule *get_rule(int rule_no) { return rules_[rule_no].get(); };
+  const Rule* get_rule(int rule_no) { return rules_[rule_no].get(); };
   int get_root_term_id(void) { return root_term_; };
 
   void load_rule(std::istream &is);

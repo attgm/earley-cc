@@ -33,11 +33,10 @@ public:
       i = 0;
       j = 0;
     }
-    if (auto it = term_table_.find(std::make_tuple(i, j, term_id));
-        it != end(term_table_)) {
+    if (auto it = term_table_.find(std::make_tuple(i, j, term_id)); it != end(term_table_)) {
       auto unit = it->second.get();
       if (auto unit_it = unit->find(quadruplet); unit_it != end(*unit)) {
-        (*unit_it)->marge(quadruplet.get());
+        (*unit_it)->merge(quadruplet.get());
       } else {
         unit->insert(std::move(quadruplet));
       }

@@ -54,7 +54,7 @@ protected:
   std::unique_ptr<Q> create_next_quad(Q *quadruplet) {
     auto new_quad =
         create_quad(quadruplet->get_rule_id(), quadruplet->get_dot_loc() + 1);
-    new_quad->add_next(quadruplet);
+    new_quad->merge(quadruplet);
 
     return std::move(new_quad);
   };
@@ -76,7 +76,7 @@ template <class Q> void Registration<Q>::step1(void) {
   for (int i = 0; i < grammar_->rule_num(); i++) {
     const Rule *rule = grammar_->get_rule(i);
     auto quad = create_quad(i, 0);
-    quad->add(rule->prob);
+    quad->add(i, rule->prob);
     parse_list_->insert(0, 0, rule->right[0], std::move(quad));
   }
 };

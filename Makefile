@@ -57,7 +57,7 @@ $(OBJECT_DIR)/%.o: $(EXAMPLE_DIR)/%.cpp
 	$(COMPILE.cc) $<  -o $@ 
 
 clean   : 
-	-$(RM) $(BINS) $(DEPS) $(OBJS) \
+	-$(RM) $(BINS) $(DEPS) $(OBJS) $(LIB_EARLEY)\
 		*~ .*~ core
 
 -include  $(DEPS)

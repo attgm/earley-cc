@@ -6,114 +6,91 @@
 #include "ParseProblem.h"
 
 #include <iostream>
+#include <algorithm>
 
 #include "ParseList.h"
 
-const int kDefaultLimit = 10;
-const int kDefaultMode = ParseRegistration::mode_Number;
+const int DEFAULT_LIMIT = 10;
+const int DEFAULT_MODE = ParseRegistration::mode_Number;
 
 #pragma mark-- ParseQuad --
-//----------- ParseQuad::Add
-// double inProb : 追加する確率値
-void ParseQuad::add(double prob) {
-  Element *newElement = element_pool_->create_new_element(prob);
-  newElement->quadruplet_ = this;
-  probs_.push_back(newElement);
-
-  limit(probs_);
+//----------- ParseQuad::add
+// add a prob
+void ParseQuad::add(int rule_id, double prob) {
+  Element element;
+  element.prob_ = prob;
+  element.rule_id_.push_back(rule_id);
+  probs_.push_back(element);
+  limit();
 }
 
-//----------- AddNext
-// Quadrupletの「次」(dotが1つ右に移動した)要素を挿入する
-void ParseQuad::add_next(ParseQuad *quadruplet) {
-  std::list<Element *> &baseList = quadruplet->get_prob_list();
 
-  for (std::list<Element *>::iterator it = baseList.begin();
-       it != baseList.end(); it++) {
-    Element *new_element = element_pool_->create_new_element(*it);
-    new_element->quadruplet_ = this;
-    probs_.push_back(new_element);
-  }
-}
+//----------- ParseQuad::merge
+// merge with quadruplet
+void ParseQuad::merge(const ParseQuad* quadruplet) {
+  auto baseList = quadruplet->get_prob_list();
 
-//----------- ParseQuad::Marge
-// inQuadの要素とマージする
-void ParseQuad::marge(ParseQuad *quadruplet) {
-  // 確率値のリストへの参照を得る
-  std::list<Element *> &sl = quadruplet->get_prob_list();
-  // 元のQuadrupletを始めから見て,
-  std::list<Element *>::iterator it = probs_.begin();
-  for (std::list<Element *>::iterator i = sl.begin(); i != sl.end(); i++) {
-    while (it != probs_.end() && *(*it) > *(*i))
-      it++;
-    (*i)->quadruplet_ = this;
-    probs_.insert(it, *i);
+  for (auto it : baseList){
+    Element element;
+    element.prob_ = it.prob_;
+    element.rule_id_.insert(element.rule_id_.begin(), it.rule_id_.begin(), it.rule_id_.end());
+    probs_.push_back(element);
   }
-  limit(probs_);
+  limit();
 }
 
 //----------- ParseQuad::Multiply
-// quadrupletとの積をとる
-void ParseQuad::multiply(ParseQuad *quadruplet) {
-  std::list<Element *> probs;
-  std::list<Element *> &sl = quadruplet->get_prob_list();
+// multiply two quadruplets
+void ParseQuad::multiply(const ParseQuad *quadruplet) {
+  auto prob_list = quadruplet->get_prob_list();
+  std::list<Element> new_prob_list;
 
-  for (std::list<Element *>::iterator i = probs_.begin(); i != probs_.end();
-       i++) {
-    std::list<Element *>::iterator it = probs.begin();
-    for (std::list<Element *>::iterator j = sl.begin(); j != sl.end(); j++) {
-      Element *newElement = element_pool_->create_new_element(*i, *j);
-      newElement->quadruplet_ = this;
-      while (it != probs.end() && *(*it) > *newElement)
-        it++;
-      if (it == probs.end() && probs.size() > limit_) {
-        // ElementPool::RemoveElement(newElement);
-        break;
-      } else {
-        probs.insert(it, newElement);
-      }
+  for (auto i : probs_) {
+    for (auto j : prob_list) {
+      Element new_element;
+      new_element.prob_ = i.prob_ * j.prob_;
+      new_element.rule_id_.insert(new_element.rule_id_.begin(), j.rule_id_.begin(), j.rule_id_.end());
+      new_element.rule_id_.insert(new_element.rule_id_.begin(),i.rule_id_.begin(), i.rule_id_.end());
+      new_prob_list.push_back(new_element);
     }
   }
-  limit(probs);
-  probs_ = probs;
+
+  probs_ = new_prob_list;
+  limit();
 }
 
 //---------- ParseQuad::Limit
-// 確率値を mLimit 個に制限する.
-void ParseQuad::limit(std::list<Element *> &inQuad) {
-  while (inQuad.size() > limit_) {
-    inQuad.pop_back();
+// Limit the number of probability values to limit_.
+void ParseQuad::limit() {
+  probs_.sort(std::greater<Element>());
+  while (probs_.size() > limit_) {
+    probs_.pop_back();
   }
 }
 
 #pragma mark-- ParseRegistration --
 //---------- ParseRegistration
-// constractor
+// constructor
 ParseRegistration::ParseRegistration(std::shared_ptr<Grammar> grammar)
-    : Registration<ParseQuad>(grammar), results_(NULL), limit_(kDefaultLimit),
-      mode_(kDefaultMode) {
-  element_pool_ = new ElementPool;
+    : Registration<ParseQuad>(grammar), limit_(DEFAULT_LIMIT),
+      mode_(DEFAULT_MODE) {
 }
 
 //---------- ParseRegistration::~ParseRegistration
-// distractor
+// destructor 
 ParseRegistration::~ParseRegistration() {
-  if (element_pool_) {
-    delete element_pool_;
-  }
 }
 
 //---------- ParseRegistration::InitRegistration
-// Registの前処理
+// Preprocessing of registration
 void ParseRegistration::init_registration(void) {
   Registration::init_registration();
-  element_pool_->clear();
 }
 
 //---------- ParseRegistration::SetLimit
-void ParseRegistration::set_limit(int inLimit) {
-  if (inLimit > 0) {
-    limit_ = inLimit;
+void ParseRegistration::set_limit(int limit) {
+  if (limit > 0) {
+    limit_ = limit;
   }
 }
 
@@ -124,27 +101,21 @@ int ParseRegistration::get_result_num(void) {
 
 //---------- ParseRegistration::Regist
 //
-void ParseRegistration::regist(const std::string &inString) {
-  // 以前の結果が残っていたら削除する
-  if (results_) {
-    delete results_;
-  }
-  // 構文解析を行う
-  Registration::regist(inString);
+void ParseRegistration::regist(const std::string &string) {
+  results_ = create_quad(-1, -1);
+  
+  // Perform parsing
+  Registration::regist(string);
 
-  // 開始記号から始まる要素を取り出す
-  // [S->γ.,0,n]なる要素を検索する(実際は[*->*.,0,n] )
+  // Find elements beginning with the root term
   try {
+    // find quad [*->*.,0,n]
     auto unit = parse_list_->find(0, input_length_, 0);
-    // 結果の列を取り出す
-    results_ = create_quad(-1, -1).get();
-    for (auto it = unit->begin(); it != unit->end(); it++) {
-      auto element = (*it).get();
-      // もし左辺が開始記号だった場合
-      if ((grammar_->get_rule(element->get_rule_id()))->left ==
-          grammar_->get_root_term_id()) {
-        // マージソートでk個だけ取り出す
-        results_->marge(element);
+    for (const auto &it : *unit) {
+      // if left term is start term
+      if ((grammar_->get_rule(it->get_rule_id()))->left == grammar_->get_root_term_id()) {
+        // get the results
+        results_->merge(it.get());
       }
     }
   } catch (std::out_of_range e) {
@@ -154,87 +125,27 @@ void ParseRegistration::regist(const std::string &inString) {
 }
 
 //----------ParseRegistration::BackTrace
-//  index番目の構文木を得る
-void ParseRegistration::back_trace(int index, Tracer *default_tracer) {
-  if (!results_ || index < 0 || index >= results_->get_prob_list().size())
+//  get the index-th parse tree
+void ParseRegistration::back_trace(int index) {
+  if (index < 0 || index >= results_->get_prob_list().size())
     return;
-  Tracer *tracer = default_tracer ? default_tracer : new Tracer(grammar_);
 
-  std::list<Element *> &probList = results_->get_prob_list();
-  // index番目のiteratorを求める
-  std::list<Element *>::iterator it = probList.begin();
-  advance(it, index);
-
+  auto probList = results_->get_prob_list();
+  auto it = std::next(probList.begin(), index);
   if (it != probList.end()) {
-    tracer->init((*it)->prob_);
-    tracer->reverse(*it);
-    tracer->finish();
-  }
+    std::cout << it->prob_ << std::endl;
 
-  if (!default_tracer) {
-    delete tracer;
+    for(auto i : it->rule_id_){
+      std::cout << grammar_->id_to_rule(i) << std::endl;
+    }
+    std::cout << "---" << std::endl;
   }
 };
 
 //----------ParseRegistration::BackTraceAll
-//  先頭のElementを取って
-//  バックトレースを行なう
-void ParseRegistration::back_trace_all(Tracer *default_tracer) {
-  if (!results_)
-    return;
-
-  Tracer *tracer = default_tracer ? default_tracer : new Tracer(grammar_);
-
-  // 得た構文木の先頭それぞれからバックトレースを始める
-  for (std::list<Element *>::iterator it = results_->get_prob_list().begin();
-       it != results_->get_prob_list().end(); it++) {
-    tracer->init((*it)->prob_);
-    tracer->reverse(*it);
-    tracer->finish();
-  }
-
-  if (!default_tracer) {
-    delete tracer;
+// print all parse tree 
+void ParseRegistration::back_trace_all() {
+  for (int i = 0; i<results_->get_prob_list().size(); i++){
+    back_trace(i);
   }
 };
-
-//== Tracer
-
-//---------- Tracer::Tracer
-// back traceを行うクラス
-Tracer::Tracer(std::shared_ptr<Grammar> grammar) : grammar_(grammar) {}
-
-//----------- Tracer::~Tracer
-Tracer::~Tracer() {}
-
-//----------- Tracer::init
-// back trace開始時に呼ばれる関数
-void Tracer::init(double inProb) {
-  std::cout << "prob :" << inProb << std::endl;
-}
-
-//----------- Tracer::reverse
-//   実際にバックトレースを行なうルーチン
-//   再帰的に呼び出される
-void Tracer::reverse(Element *e) {
-  if (e->back_ptr_1 == NULL) {
-    reverse_self(e);
-  } else {
-    if (e->back_ptr_2 != NULL) {
-      reverse(e->back_ptr_2);
-    }
-    reverse(e->back_ptr_1);
-  }
-}
-
-//----------- Tracer::reverse_self
-//  [A -> ・γ, i, j] となった時に呼び出される.
-//  実際ここだけをover writeすればいいと思われる.
-void Tracer::reverse_self(Element *e) {
-  auto rule = grammar_->id_to_rule(e->quadruplet_->get_rule_id());
-  std::cout << rule << std::endl;
-}
-
-//----------- Tracer::finish
-//   バックトレース終了時に呼び出される
-void Tracer::finish(void) { std::cout << "--" << std::endl; }

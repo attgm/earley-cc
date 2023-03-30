@@ -12,15 +12,15 @@
 #include "Registration.h"
 
 //-- AuthorizeQuad
-// 構文解析問題用Quadruplet
+// Quadruplet for authorize fcreate_new_elementproblem
 class AuthorizeQuad : public Quadruplet {
 public:
   AuthorizeQuad(int rule_id, int dot_loc)
       : Quadruplet(rule_id, dot_loc), prob_(0.0){};
 
-  void add(double prob);
-  void add_next(const AuthorizeQuad *quadruplet);
-  void marge(const AuthorizeQuad *quadruplet);
+
+  void add(int /* rule_id */, double prob);
+  void merge(const AuthorizeQuad *quadruplet);
   void multiply(const AuthorizeQuad *quadruplet);
 
   double get_probability(void) const { return prob_; };
