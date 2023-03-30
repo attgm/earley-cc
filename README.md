@@ -14,4 +14,3 @@ This code can solves the two problems:
 
 - Authorize Problem :  Calc the total probability that the input string is generated.
 - Parse Problem : Find the top-k sets of productions that generate the input string.
-
