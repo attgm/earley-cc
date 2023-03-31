@@ -1,5 +1,5 @@
 //  Registration.h
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
@@ -7,6 +7,7 @@
 #ifndef REGISTRATION_H_
 #define REGISTRATION_H_
 
+#include <iostream>
 #include <list>
 #include <memory>
 #include <stdexcept>
@@ -23,7 +24,7 @@ public:
   Registration(std::shared_ptr<Grammar> grammar)
       : grammar_(grammar), parse_list_(nullptr){};
 
-  void regist(const std::string &input_string) {
+  std::unique_ptr<Q> solve(const std::string &input_string) {
     std::istrstream iss(input_string.data(), input_string.length());
     std::string buffer;
     std::vector<int> term_list;
@@ -45,13 +46,30 @@ public:
       step2(i, term_list);
       step3(i);
     }
+
+    auto results = create_quad(-1, -1);
+    try {
+      // find quad [*->*.,0,n]
+      auto unit = parse_list_->find(0, input_length_, 0);
+      for (const auto &it : *unit) {
+        // if left term is start term
+        if ((grammar_->get_rule(it->get_rule_id()))->left == grammar_->get_root_term_id()) {
+          // marge into the results
+          results->merge(it);
+        } 
+      }
+    } catch (std::out_of_range e) {
+      std::cout << "out_of_range" << std::endl;
+      return std::unique_ptr<Q>(nullptr);
+    }
+    return results;
   }
 
 protected:
   void init_registration(void){};
   virtual std::unique_ptr<Q> create_quad(int rule_id, int dot_loc) = 0;
 
-  std::unique_ptr<Q> create_next_quad(Q *quadruplet) {
+  std::unique_ptr<Q> create_next_quad(std::unique_ptr<Q> const &quadruplet) {
     auto new_quad =
         create_quad(quadruplet->get_rule_id(), quadruplet->get_dot_loc() + 1);
     new_quad->merge(quadruplet);
@@ -59,6 +77,7 @@ protected:
     return std::move(new_quad);
   };
 
+  
   void step1(void);
   void step2(int i, std::vector<int> &input);
   void step3(int i);
@@ -91,7 +110,7 @@ template <class Q> void Registration<Q>::step2(int i, std::vector<int> &input) {
 
       for (const auto &quad : *base) {
         // insert [ * -> * a(i-1).*,j,i]
-        auto quadruplet = create_next_quad(quad.get());
+        auto quadruplet = create_next_quad(quad);
         int term = grammar_->term_after_dot(quadruplet->get_rule_id(),
                                             quadruplet->get_dot_loc());
         parse_list_->insert(j, i, term, std::move(quadruplet));
@@ -117,8 +136,8 @@ template <class Q> void Registration<Q>::step3(int i) {
 
             for (const auto &second_quad : *second_quads) {
               // insert [ * ->  *A .*, j, i]
-              auto new_quad = create_next_quad(second_quad.get());
-              new_quad->multiply(first_quad.get());
+              auto new_quad = create_next_quad(second_quad);
+              new_quad->multiply(first_quad);
               int term = grammar_->term_after_dot(new_quad->get_rule_id(),
                                                   new_quad->get_dot_loc());
               parse_list_->insert(j, i, term, std::move(new_quad));

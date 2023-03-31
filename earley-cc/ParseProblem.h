@@ -1,13 +1,15 @@
 //  ParseProblem.h
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
 #pragma once
-#ifndef PARSE_PROGLEM_H_
-#define PARSE_PROGLEM_H_
+#ifndef PARSE_PROBLEM_H_
+#define PARSE_PROBLEM_H_
 
 #include <algorithm>
+#include <vector>
+#include <memory>
 #include "Grammar.h"
 #include "Registration.h"
 
@@ -15,7 +17,7 @@
 //
 struct Element {
   double prob_;
-  std::list<int> rule_id_;
+  std::vector<int> rule_list_;
 };
 
 inline int operator<(const Element &a, const Element &b) {
@@ -26,9 +28,6 @@ inline int operator>(const Element &a, const Element &b) {
   return a.prob_ > b.prob_;
 };
 
-inline int operator==(const Element &a, const Element &b) {
-  return std::equal(a.rule_id_.begin(), a.rule_id_.end(), b.rule_id_.begin());
-};
 
 
 //-- ParseQuad
@@ -40,8 +39,8 @@ public:
   virtual ~ParseQuad(){};
 
   void add(int rule_id, double prob);
-  void merge(const ParseQuad *quadruplet);
-  void multiply(const ParseQuad *quadruplet);
+  void merge(std::unique_ptr<ParseQuad> const &quadruplet);
+  void multiply(std::unique_ptr<ParseQuad> const &quadruplet);
 
   const std::list<Element> &get_prob_list(void) const { return probs_; };
 
@@ -63,13 +62,11 @@ public:
   virtual ~ParseRegistration();
 
   void set_limit(int inLimit);
-  void regist(const std::string &inString);
 
-  int get_result_num(void);
   void set_mode(int new_mode) { mode_ = new_mode; };
 
-  void back_trace(int index);
-  void back_trace_all();
+  void print_result_at(std::unique_ptr<ParseQuad> const &results, int index);
+  void print_all_results(std::unique_ptr<ParseQuad> const &results);
 
 protected:
   std::unique_ptr<ParseQuad> create_quad(int rule_no, int dot_loc) {
@@ -84,4 +81,4 @@ private:
   int mode_;
 };
 
-#endif // PARSE_PROGLEM_H_
+#endif // PARSE_PROBLEM_H_

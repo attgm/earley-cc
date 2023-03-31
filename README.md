@@ -1,5 +1,5 @@
 # earley-cc
-Earley perser for the probabilistic context-free grammar on C++
+Earley parser for the probabilistic context-free grammar on C++
 
 ## What is this?
 I'm going to try to correct the code [I wrote as a master degree student](https://github.com/attgm/earley-c) into a modern code.

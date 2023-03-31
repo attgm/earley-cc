@@ -1,5 +1,5 @@
 //  ParseProblem.cpp
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
@@ -19,7 +19,8 @@ const int DEFAULT_MODE = ParseRegistration::mode_Number;
 void ParseQuad::add(int rule_id, double prob) {
   Element element;
   element.prob_ = prob;
-  element.rule_id_.push_back(rule_id);
+  element.rule_list_.reserve(1);
+  element.rule_list_.push_back(rule_id);
   probs_.push_back(element);
   limit();
 }
@@ -27,13 +28,14 @@ void ParseQuad::add(int rule_id, double prob) {
 
 //----------- ParseQuad::merge
 // merge with quadruplet
-void ParseQuad::merge(const ParseQuad* quadruplet) {
+void ParseQuad::merge(std::unique_ptr<ParseQuad> const &quadruplet) {
   auto baseList = quadruplet->get_prob_list();
 
   for (auto it : baseList){
     Element element;
     element.prob_ = it.prob_;
-    element.rule_id_.insert(element.rule_id_.begin(), it.rule_id_.begin(), it.rule_id_.end());
+    element.rule_list_.reserve(it.rule_list_.size());
+    std::copy(it.rule_list_.begin(), it.rule_list_.end(), std::back_inserter(element.rule_list_));
     probs_.push_back(element);
   }
   limit();
@@ -41,17 +43,18 @@ void ParseQuad::merge(const ParseQuad* quadruplet) {
 
 //----------- ParseQuad::Multiply
 // multiply two quadruplets
-void ParseQuad::multiply(const ParseQuad *quadruplet) {
+void ParseQuad::multiply(std::unique_ptr<ParseQuad> const &quadruplet) {
   auto prob_list = quadruplet->get_prob_list();
   std::list<Element> new_prob_list;
 
   for (auto i : probs_) {
     for (auto j : prob_list) {
-      Element new_element;
-      new_element.prob_ = i.prob_ * j.prob_;
-      new_element.rule_id_.insert(new_element.rule_id_.begin(), j.rule_id_.begin(), j.rule_id_.end());
-      new_element.rule_id_.insert(new_element.rule_id_.begin(),i.rule_id_.begin(), i.rule_id_.end());
-      new_prob_list.push_back(new_element);
+      Element element;
+      element.prob_ = i.prob_ * j.prob_;
+      element.rule_list_.reserve(j.rule_list_.size() + i.rule_list_.size());
+      std::copy(i.rule_list_.begin(), i.rule_list_.end(), 
+        std::copy(j.rule_list_.begin(), j.rule_list_.end(), std::back_inserter(element.rule_list_)));
+      new_prob_list.push_back(element);
     }
   }
 
@@ -94,58 +97,30 @@ void ParseRegistration::set_limit(int limit) {
   }
 }
 
-//---------- ParseRegistration::GetResultNum
-int ParseRegistration::get_result_num(void) {
-  return results_->get_prob_list().size();
-};
-
-//---------- ParseRegistration::Regist
-//
-void ParseRegistration::regist(const std::string &string) {
-  results_ = create_quad(-1, -1);
-  
-  // Perform parsing
-  Registration::regist(string);
-
-  // Find elements beginning with the root term
-  try {
-    // find quad [*->*.,0,n]
-    auto unit = parse_list_->find(0, input_length_, 0);
-    for (const auto &it : *unit) {
-      // if left term is start term
-      if ((grammar_->get_rule(it->get_rule_id()))->left == grammar_->get_root_term_id()) {
-        // get the results
-        results_->merge(it.get());
-      }
-    }
-  } catch (std::out_of_range e) {
-    std::cout << "out_of_range" << std::endl;
-    return;
-  }
-}
-
-//----------ParseRegistration::BackTrace
+//----------ParseRegistration::print_result_at
 //  get the index-th parse tree
-void ParseRegistration::back_trace(int index) {
-  if (index < 0 || index >= results_->get_prob_list().size())
-    return;
-
-  auto probList = results_->get_prob_list();
+void ParseRegistration::print_result_at(std::unique_ptr<ParseQuad> const &results, int index) {
+  auto probList = results->get_prob_list();
   auto it = std::next(probList.begin(), index);
   if (it != probList.end()) {
     std::cout << it->prob_ << std::endl;
 
-    for(auto i : it->rule_id_){
+    for(auto i : it->rule_list_){
       std::cout << grammar_->id_to_rule(i) << std::endl;
     }
     std::cout << "---" << std::endl;
   }
 };
 
-//----------ParseRegistration::BackTraceAll
+//----------ParseRegistration::print_all_results
 // print all parse tree 
-void ParseRegistration::back_trace_all() {
-  for (int i = 0; i<results_->get_prob_list().size(); i++){
-    back_trace(i);
+void ParseRegistration::print_all_results(std::unique_ptr<ParseQuad> const &results) {
+  for (auto it : results->get_prob_list()){
+    std::cout << it.prob_ << std::endl;
+
+    for(auto i : it.rule_list_){
+      std::cout << grammar_->id_to_rule(i) << std::endl;
+    }
+    std::cout << "---" << std::endl;
   }
 };

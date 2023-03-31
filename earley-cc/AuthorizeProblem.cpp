@@ -1,5 +1,5 @@
 //  AuthorizeProblem.cpp
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
@@ -12,38 +12,16 @@
 void AuthorizeQuad::add(int /* rule_id */, double prob) { prob_ += prob; }
 
 //-- merge
-void AuthorizeQuad::merge(const AuthorizeQuad *quadruplet) {
+void AuthorizeQuad::merge(std::unique_ptr<AuthorizeQuad> const &quadruplet) {
   prob_ += quadruplet->get_probability();
 }
 
 //-- multiply
-void AuthorizeQuad::multiply(const AuthorizeQuad *quadruplet) {
+void AuthorizeQuad::multiply(std::unique_ptr<AuthorizeQuad> const &quadruplet) {
   prob_ *= quadruplet->get_probability();
 }
 
 //-- AuthorizeRegistration
-// constractor
+// constructor
 AuthorizeRegistration::AuthorizeRegistration(std::shared_ptr<Grammar> grammar)
     : Registration<AuthorizeQuad>(grammar) {}
-
-//-- calc_probability
-// Summation of all the quadriplets starting with a root term
-double AuthorizeRegistration::calc_probability(void) {
-  // search [*->*.,0,n]
-  try {
-    const auto unit = parse_list_->find(0, input_length_, 0);
-
-    double results = 0.0;
-    for (const auto &quad : *unit) {
-      // filtered [S->*., 0, n]
-      if ((grammar_->get_rule(quad->get_rule_id()))->left ==
-          grammar_->get_root_term_id()) {
-        results += quad->get_probability();
-      }
-    }
-    return results;
-  } catch (std::out_of_range e) {
-    std::cout << "out_of_range" << std::endl;
-    return 0.0;
-  }
-};

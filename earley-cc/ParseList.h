@@ -1,5 +1,5 @@
 //  ParseList.h
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
@@ -8,7 +8,6 @@
 #define PARSE_LIST_H_
 
 #include "Quadruplet.h"
-#include <cassert>
 #include <map>
 #include <set>
 
@@ -36,7 +35,7 @@ public:
     if (auto it = term_table_.find(std::make_tuple(i, j, term_id)); it != end(term_table_)) {
       auto unit = it->second.get();
       if (auto unit_it = unit->find(quadruplet); unit_it != end(*unit)) {
-        (*unit_it)->merge(quadruplet.get());
+        (*unit_it)->merge(quadruplet);
       } else {
         unit->insert(std::move(quadruplet));
       }

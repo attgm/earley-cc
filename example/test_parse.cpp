@@ -1,25 +1,25 @@
 //  test_parse.cpp
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
 #include <fstream>
 #include <iostream>
 
-// 1.ParseProblem.hをincludeすること
+// include "ParseProblem.h"
 #include "ParseProblem.h"
 
-const char *const RULEFILENAME = "rule.txt";   // 生成規則のファイル名
-const char *const INPUTFILENAME = "input.txt"; // 入力ファイル名
+const char *const RULEFILENAME = "rule.txt";   // production rule file
+const char *const INPUTFILENAME = "input.txt"; // input string file
 
 int main() {
-  // 文法ファイルを開く
+  // open the production rule file
   std::ifstream ifs(RULEFILENAME);
   if (!ifs.good()) {
     std::cerr << "Error: Cannot open file : " << RULEFILENAME << std::endl;
     exit(0);
   }
-  // 2. 文法ファイルのstreamから文法のデータベースを作成する
+  // crate a production rule database from the stream
   auto grammar = std::make_shared<Grammar>();
   try {
     grammar->load_rule(ifs);
@@ -29,10 +29,10 @@ int main() {
   }
   ifs.close();
 
-  // 3. パーザクラスを生成する.
+  // create a parser class
   ParseRegistration rs(grammar);
 
-  // 4. 入力文字列を読み込む
+  // read an input string
   std::ifstream strfs(INPUTFILENAME);
   if (!strfs.good()) {
     std::cerr << "Error: Cannot open file : " << INPUTFILENAME << std::endl;
@@ -41,24 +41,22 @@ int main() {
   std::string input;
   getline(strfs, input);
 
-  // 5. 上位いくつの木を導出するかの設定(初期値は10)
+  // set the upper number of parse trees (default is 10) 
   rs.set_limit(10);
   try {
-    // 6. パージングを行う.
-    rs.regist(input);
+    // parse the input string.
+    auto results = rs.solve(input);
 
-    // 7.バックトレースを行う
+    // get the parse tree
     std::cout << "** call BackTraceAll" << std::endl;
-    rs.back_trace_all(); // いっぺんに全部やってしまうやりかた
+    rs.print_all_results(results); // get all trees
 
-    int num = rs.get_result_num(); // 1つ1つ呼び出すやりかた
+    int num = results->get_prob_list().size(); // get a tree
     for (int i = 0; i < num; i++) {
       std::cout << "** call BackTrace" << std::endl;
-      rs.back_trace(i);
+      rs.print_result_at(results, i);
     }
 
-    // 他にもパージングをしたい文字列がある場合,
-    // 4に戻る.
   } catch (std::runtime_error e) {
     std::cerr << "Error: " << e.what() << std::endl;
   }

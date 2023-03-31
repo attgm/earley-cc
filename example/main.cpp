@@ -1,5 +1,5 @@
 //  main.cpp
-//    1999 - 2020 Atsushi Tagami
+//    1999 - 2023 Atsushi Tagami
 //
 //  This software is released under the MIT License.
 //  http://opensource.org/licenses/mit-license.php
@@ -8,21 +8,21 @@
 #include <memory>
 #include <stdexcept>
 
-// 1.ParseProblem.h/AuthorizeProblemをincludeすること
+// include "ParseProblem.h" and "AuthorizeProblem.h"
 #include "AuthorizeProblem.h"
 #include "ParseProblem.h"
 
-const char *const RULEFILENAME = "rule.txt";   // 生成規則のファイル名
-const char *const INPUTFILENAME = "input.txt"; // 入力ファイル名
+const char *const RULEFILENAME = "rule.txt";   // production rule file
+const char *const INPUTFILENAME = "input.txt"; // input string file
 
 int main() {
-  // 文法ファイルを開く
+  // open the production rule file
   std::ifstream ifs(RULEFILENAME);
   if (!ifs.good()) {
     std::cerr << "Error: Cannot open file : " << RULEFILENAME << std::endl;
     exit(0);
   }
-  // 2. 文法ファイルのstreamから文法のデータベースを作成する
+  // crate a production rule database from the stream
   auto grammar = std::make_shared<Grammar>();
   try {
     grammar->load_rule(ifs);
@@ -32,7 +32,7 @@ int main() {
   }
   ifs.close();
 
-  // 3. 入力文字列を読み込む
+  // read an input string
   std::ifstream strfs(INPUTFILENAME);
   if (!strfs.good()) {
     std::cerr << "Error: Cannot open file : " << INPUTFILENAME << std::endl;
@@ -42,25 +42,25 @@ int main() {
   getline(strfs, input);
 
   try {
-    //== 構文解析
-    // 4. 構文解析用パーザクラスを生成する.
+    //== Parse Problem
+    // create a parser class for a parse problem
     ParseRegistration preg(grammar);
-    // 5. 上位いくつの木を導出するかの設定(初期値は10)
+    // set the upper number of parse trees (default is 10) 
     preg.set_limit(10);
-    // 6. 構文解析をおこなう
-    preg.regist(input);
-    // 7. バックトレースを行う
-    std::cout << "-- 構文解析 --" << std::endl;
-    preg.back_trace_all();
+    // parse the input string.
+    auto presult = preg.solve(input);
+    // get the parse tree
+    std::cout << "-- Parse Problem --" << std::endl;
+    preg.print_all_results(presult);
 
-    //== 認定問題
-    // 8. 認定問題用パーザクラスを生成する.
+    //== Authorize Problem
+    // create a parser class for an authorize problem
     AuthorizeRegistration areg(grammar);
-    // 9. パージングする
-    areg.regist(input);
-    // 10. 結果の出力
-    std::cout << "-- 認定問題 --" << std::endl;
-    std::cout << areg.calc_probability() << std::endl;
+    // parse the input string.
+    auto aresult = areg.solve(input);
+    // get the probability
+    std::cout << "-- Authorize Problem --" << std::endl;
+    std::cout << aresult->get_probability() << std::endl;
   } catch (std::runtime_error e) {
     std::cerr << "Error: " << e.what() << std::endl;
   }
